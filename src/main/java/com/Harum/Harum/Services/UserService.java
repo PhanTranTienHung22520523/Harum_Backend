@@ -1,5 +1,7 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.Enums.RoleTypes;
+import com.Harum.Harum.Models.Roles;
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,12 @@ public class UserService {
         if (user.getAvatarUrl() == null) user.setAvatarUrl("default_avatar.png");
         if (user.getCoverUrl() == null) user.setCoverUrl("default_cover.jpg");
         if (user.getBio() == null) user.setBio("Hello! I'm new here.");
-        if (user.getRole() == null) user.setRole("USER");
+        if (user.getRole() == null) {
+            Roles defaultRole = (new Roles(RoleTypes.USER)); // Nếu chưa có, tạo mới
+            user.setRole(defaultRole);
+        }
+
+
         if (user.getCreatedAt() == null) user.setCreatedAt(Instant.now().toString());
 
         return userRepository.save(user);
@@ -44,7 +51,6 @@ public class UserService {
             user.setAvatarUrl(userDetails.getAvatarUrl());
             user.setCoverUrl(userDetails.getCoverUrl());
             user.setBio(userDetails.getBio());
-            user.setRole(userDetails.getRole());
             return userRepository.save(user);
         });
     }

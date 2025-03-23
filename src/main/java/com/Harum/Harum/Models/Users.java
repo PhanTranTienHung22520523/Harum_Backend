@@ -1,9 +1,15 @@
     package com.Harum.Harum.Models;
 
 
+    import com.Harum.Harum.Enums.RoleTypes;
+    import jakarta.validation.constraints.Email;
+    import jakarta.validation.constraints.NotBlank;
+    import jakarta.validation.constraints.Pattern;
+    import jakarta.validation.constraints.Size;
     import lombok.AllArgsConstructor;
     import lombok.Data;
     import lombok.NoArgsConstructor;
+    import org.springframework.data.mongodb.core.mapping.DBRef;
     import org.springframework.data.mongodb.core.mapping.Document;
     import org.springframework.data.annotation.Id;
     import java.time.Instant;
@@ -15,18 +21,33 @@
     public class Users {
         @Id
         private String id;
+
+        @NotBlank(message = "Username cannot be empty")
+        @Size(min = 6, max = 20, message = "Username must be between 6 and 20 characters")
         private String username;
+
+        @NotBlank(message = "Email cannot be empty")
+        @Email(message = "Invalid email format")
         private String email;
+
+        @NotBlank(message = "Password cannot be empty")
+        @Size(min = 8, message = "Password must be at least 6 characters")
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+                message = "Password must contain at least one uppercase letter, one number, and one special character"
+        )
         private String passwordHash;
         private String avatarUrl;
         private String coverUrl;
         private String bio;
-        private String role;
+        @DBRef // Liên kết đến bảng Roles
+        private Roles role;
         private String createdAt;
 
         public Users(){}
 
-        public Users(String username, String email, String passwordHash, String avatarUrl, String coverUrl, String bio, String role) {
+
+        public Users(String username, String email, String passwordHash, String avatarUrl, String coverUrl, String bio, Roles role) {
             this.username = username;
             this.email = email;
             this.passwordHash = passwordHash;
@@ -53,8 +74,13 @@
         public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
         public String getBio() { return bio; }
         public void setBio(String bio) { this.bio = bio; }
-        public String getRole() { return role; }
-        public void setRole(String role) { this.role = role; }
+        public Roles getRole() {
+            return role;
+        }
+
+        public void setRole(Roles role) {
+            this.role = role;
+        }
         public String getCreatedAt() { return createdAt; }
         public void setCreatedAt(String string) { this.createdAt = Instant.now().toString(); }
     }

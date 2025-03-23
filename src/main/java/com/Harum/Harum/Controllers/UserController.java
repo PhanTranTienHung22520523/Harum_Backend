@@ -2,9 +2,10 @@ package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Services.UserService;
-import com.Harum.Harum.Constants.StatusCodes;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,36 +21,39 @@ public class UserController {
     // Get all users
     @GetMapping
     public ResponseEntity<List<Users>> getAllUsers() {
-        return ResponseEntity.status(StatusCodes.OK.getCode()).body(userService.getAllUsers());
+        List<Users> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
     // Get user by ID
     @GetMapping("/{id}")
     public ResponseEntity<Users> getUserById(@PathVariable String id) {
-        return userService.getUserById(id)
-                .map(user -> ResponseEntity.status(StatusCodes.OK.getCode()).body(user))
-                .orElseGet(() -> ResponseEntity.status(StatusCodes.NOT_FOUND.getCode()).build());
+        Optional<Users> user = userService.getUserById(id);
+        return user.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-
-    // Create new user
-    @PostMapping
-    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        return ResponseEntity.status(StatusCodes.CREATED.getCode()).body(userService.createUser(user));
-    }
+//
+//    // Create new user
+//    @PostMapping
+//    public ResponseEntity<Users> createUser(@RequestBody Users user) {
+//        Users createdUser = userService.createUser(user);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+//    }
 
     // Update user
     @PutMapping("/{id}")
     public ResponseEntity<Users> updateUser(@PathVariable String id, @RequestBody Users userDetails) {
-        return userService.updateUser(id, userDetails)
-                .map(user -> ResponseEntity.status(StatusCodes.OK.getCode()).body(user))
-                .orElseGet(() -> ResponseEntity.status(StatusCodes.NOT_FOUND.getCode()).build());
+        Optional<Users> updatedUser = userService.updateUser(id, userDetails);
+        return updatedUser.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     // Delete user
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
-        return userService.deleteUser(id)
-                ? ResponseEntity.status(StatusCodes.NO_CONTENT.getCode()).build()
-                : ResponseEntity.status(StatusCodes.NOT_FOUND.getCode()).build();
+        boolean deleted = userService.deleteUser(id);
+        return deleted ? ResponseEntity.noContent().build()
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }
