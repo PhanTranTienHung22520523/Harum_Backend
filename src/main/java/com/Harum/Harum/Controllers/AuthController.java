@@ -1,12 +1,18 @@
 package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.Constants.StatusCodes;
+import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
+import com.Harum.Harum.DTO.VerifyOTPRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
 import com.Harum.Harum.Models.Roles;
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.RoleRepo;
 import com.Harum.Harum.Repository.UserRepo;
+import com.Harum.Harum.Security.HarumUserDetailServices;
 import com.Harum.Harum.Security.JwtUtil;
+import com.Harum.Harum.Services.EmailOTPService;
+import com.Harum.Harum.Services.EmailService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +25,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,6 +45,15 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private HarumUserDetailServices harumUserDetailServices;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private EmailOTPService emailOTPService;
 
     // Đăng nhập
     @PostMapping("/login")
@@ -96,5 +112,67 @@ public class AuthController {
         Users savedUser = userRepository.save(user);
 
         return ResponseEntity.status(StatusCodes.CREATED.getCode()).body(savedUser);
+    }
+
+    @PostMapping("/change-password")
+    public String changePassword(@RequestBody ChangePasswordRequestDTO request) {
+        Optional<Users> optionalUser = userRepository.findById(request.getUserId());
+
+        if (optionalUser.isEmpty()) {
+            return "User not found";
+        }
+
+        Users user = optionalUser.get();
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            return "Old password is incorrect";
+        }
+
+        // Kiểm tra mật khẩu mới và xác nhận mật khẩu có trùng nhau không
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return "New password and confirmation do not match";
+        }
+
+        // Mã hóa và cập nhật mật khẩu mới
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return "Password changed successfully";
+    }
+
+    @PostMapping("/send-otp")
+    public String sendOTP(@RequestParam String email) {
+        try {
+            emailOTPService.sendOTP(email);
+            return "OTP has been sent to your email";
+        } catch (MessagingException e) {
+            return "Failed to send OTP";
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOTP(@RequestBody VerifyOTPRequestDTO request) {
+        if (!emailOTPService.verifyOTP(request.getEmail(), request.getOtp())) {
+            System.out.println("Received OTP: " + request.getOtp());
+            System.out.println("Stored OTP: " + emailOTPService.getStoredOTP(request.getEmail()));
+            return ResponseEntity.badRequest().body("Invalid OTP");
+        }
+
+        Optional<Users> userOptional = userRepository.findByEmail(request.getEmail());
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        Users user = userOptional.get();
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body("Passwords do not match");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password reset successfully");
     }
 }

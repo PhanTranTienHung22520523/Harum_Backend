@@ -49,4 +49,11 @@ public class JwtUtil {
     private boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
+    public String extractUserId(String token) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token.replace("Bearer ", ""))
+                .getBody()
+                .getSubject();
+    }
 }
