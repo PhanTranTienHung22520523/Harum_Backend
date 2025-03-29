@@ -22,10 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -119,19 +116,19 @@ public class AuthController {
         Optional<Users> optionalUser = userRepository.findById(request.getUserId());
 
         if (optionalUser.isEmpty()) {
-            return "User not found";
+            return String.valueOf(ResponseEntity.status(StatusCodes.NOT_FOUND.getCode()).body("Not found user"));
         }
 
         Users user = optionalUser.get();
 
         // Kiểm tra mật khẩu cũ có đúng không
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
-            return "Old password is incorrect";
+            return String.valueOf(ResponseEntity.status(StatusCodes.FORBIDDEN.getCode()).body("Old password is incorrect"));
         }
 
         // Kiểm tra mật khẩu mới và xác nhận mật khẩu có trùng nhau không
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            return "New password and confirmation do not match";
+            return String.valueOf(ResponseEntity.status(StatusCodes.BAD_REQUEST.getCode()).body("New password and confirmation do not match"));
         }
 
         // Mã hóa và cập nhật mật khẩu mới
@@ -142,21 +139,21 @@ public class AuthController {
     }
 
     @PostMapping("/send-otp")
-    public String sendOTP(@RequestParam String email) {
+    public ResponseEntity<String> sendOTP(@RequestParam String email) {
         try {
             emailOTPService.sendOTP(email);
-            return "OTP has been sent to your email";
+            return ResponseEntity.ok("OTP has been sent to your email");
         } catch (MessagingException e) {
-            return "Failed to send OTP";
+            return ResponseEntity.status(500).body("Failed to send OTP");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOTP(@RequestBody VerifyOTPRequestDTO request) {
         if (!emailOTPService.verifyOTP(request.getEmail(), request.getOtp())) {
-            System.out.println("Received OTP: " + request.getOtp());
-            System.out.println("Stored OTP: " + emailOTPService.getStoredOTP(request.getEmail()));
-            return ResponseEntity.badRequest().body("Invalid OTP");
+            return ResponseEntity.badRequest().body("Invalid or expired OTP");
         }
 
         Optional<Users> userOptional = userRepository.findByEmail(request.getEmail());
@@ -170,9 +167,39 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Passwords do not match");
         }
 
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordHash(request.getNewPassword());
         userRepository.save(user);
 
         return ResponseEntity.ok("Password reset successfully");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        Optional<Users> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        Users user = userOptional.get();
+        String newPassword = generateRandomPassword();
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        try {
+            emailService.sendEmail(email, "Your New Password", "Your new password is: " + newPassword);
+            return ResponseEntity.ok("A new password has been sent to your email");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(500).body("Failed to send new password email");
+        }
+    }
+
+    private String generateRandomPassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*";
+        StringBuilder password = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            password.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return password.toString();
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,47 +29,40 @@ public class EmailOTPService {
     @Autowired
     private EmailService emailService;
 
-    private final Map<String, String> otpStorage = new HashMap<>();
     private final Random random = new Random();
 
     public String generateOTP() {
         return String.valueOf(100000 + random.nextInt(900000)); // Tạo mã 6 chữ số
     }
 
+    @Transactional
     public void sendOTP(String to) throws MessagingException {
 
-        Optional<Users> userOptional = userRepository.findByEmail(to);
-        if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Email không tồn tại!");
-        }
+        Users user = userRepository.findByEmail(to)
+                .orElseThrow(()->new IllegalArgumentException("Email không tồn tại!"));
 
-        Users user = userOptional.get();
+
         String otp = generateOTP();
-        user.setResetToken(otp);
+        user.setOtp(otp);
         user.setOtpExpiryTime(System.currentTimeMillis() + (5 * 60 * 1000)); // Hết hạn sau 5 phút
         userRepository.save(user);
 
         // Gửi OTP qua email
-        String subject = "Your Password Reset OTP";
-        String body = "Your OTP code is: " + otp;
+        String subject = "Your Account OTP";
+        String body = "Your OTP code is: " + otp+", it will be expired in 5 minutes!";
         emailService.sendEmail(to, subject, body);
     }
 
-    public String getStoredOTP(String email) {
-        return otpStorage.get(email);
-    }
     public boolean verifyOTP(String email, String otp) {
-        Optional<Users> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            return false;
-        }
+        Users user = userRepository.findByEmail(email)
+                .orElse(null);
 
-        Users user = userOptional.get();
 
         // Kiểm tra OTP đúng và chưa hết hạn
-        if (otp.equals(user.getResetToken()) && System.currentTimeMillis() <= user.getOtpExpiryTime()) {
-            return true;
+        if (user == null || user.getOtp() == null || user.getOtpExpiryTime() < System.currentTimeMillis()) {
+            return false; // OTP không hợp lệ hoặc đã hết hạn
         }
-        return false;
+
+        return otp.equals(user.getOtp());
     }
 }

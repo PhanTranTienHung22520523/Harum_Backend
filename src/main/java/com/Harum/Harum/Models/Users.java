@@ -43,7 +43,7 @@
         @DBRef // Liên kết đến bảng Roles
         private Roles role;
         private String createdAt;
-        private String resetToken;
+        private String otp;
         private long otpExpiryTime; //
 
 
@@ -83,12 +83,12 @@
         }
         public String getCreatedAt() { return createdAt; }
         public void setCreatedAt(String string) { this.createdAt = Instant.now().toString(); }
-        public String getResetToken() {
-            return resetToken;
+        public String getOtp() {
+            return otp;
         }
 
-        public void setResetToken(String resetToken) {
-            this.resetToken = resetToken;
+        public void setOtp(String otp) {
+            this.otp = otp;
         }
 
         public long getOtpExpiryTime() {
