@@ -2,7 +2,6 @@ package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.Constants.StatusCodes;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
-import com.Harum.Harum.DTO.VerifyOTPRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
 import com.Harum.Harum.Models.Roles;
 import com.Harum.Harum.Models.Users;
@@ -10,8 +9,8 @@ import com.Harum.Harum.Repository.RoleRepo;
 import com.Harum.Harum.Repository.UserRepo;
 import com.Harum.Harum.Security.HarumUserDetailServices;
 import com.Harum.Harum.Security.JwtUtil;
-import com.Harum.Harum.Services.EmailOTPService;
 import com.Harum.Harum.Services.EmailService;
+import com.Harum.Harum.Services.OtpService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ public class AuthController {
     private EmailService emailService;
 
     @Autowired
-    private EmailOTPService emailOTPService;
+    private OtpService otpService; // Dịch vụ lưu OTP
 
     // Đăng nhập
     @PostMapping("/login")
@@ -81,6 +80,7 @@ public class AuthController {
     }
 
     // Đăng ký
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody Users user) {
         // Kiểm tra email đã tồn tại chưa
@@ -95,6 +95,26 @@ public class AuthController {
                     .body(Map.of("message", "Username already exists"));
         }
 
+        // Tạo và lưu OTP vào bộ nhớ
+
+        String otp = otpService.generateOtp(user.getEmail());
+
+        // Gửi OTP qua email
+        try {
+            emailService.sendEmail(user.getEmail(), "Harum OTP", "Mã OTP này của bạn sẽ có hiệu lực trong 10 phút:  " + otp);
+            return ResponseEntity.ok("OTP has been sent to your email");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(500).body("Failed to send OTP email");
+        }
+    }
+
+    // xác thực OTP để tạo tài khoản
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOTP(@RequestParam String email, @RequestParam String otp, @RequestBody Users user) {
+        if (!otpService.validateOtp(email, otp)) {
+            return ResponseEntity.badRequest().body("Invalid or expired OTP");
+        }
+
         // Mã hóa mật khẩu trước khi lưu vào database
         user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
 
@@ -106,10 +126,14 @@ public class AuthController {
         user.setCreatedAt(Instant.now().toString());
 
         // Lưu user vào database
-        Users savedUser = userRepository.save(user);
+        userRepository.save(user);
 
-        return ResponseEntity.status(StatusCodes.CREATED.getCode()).body(savedUser);
+        // Xóa OTP sau khi xác thực thành công
+        otpService.removeOtp(email);
+
+        return ResponseEntity.status(StatusCodes.CREATED.getCode()).body("Account created successfully!");
     }
+
 
     @PostMapping("/change-password")
     public String changePassword(@RequestBody ChangePasswordRequestDTO request) {
@@ -138,40 +162,17 @@ public class AuthController {
         return "Password changed successfully";
     }
 
-    @PostMapping("/send-otp")
-    public String sendOTP(@RequestParam String email) {
-        try {
-            emailOTPService.sendOTP(email);
-            return "OTP has been sent to your email";
-        } catch (MessagingException e) {
-            return "Failed to send OTP";
-        }
-    }
+//    @PostMapping("/send-otp")
+//    public String sendOTP(@RequestParam String email) {
+//        try {
+//            emailOTPService.sendOTP(email);
+//            return "OTP has been sent to your email";
+//        } catch (MessagingException e) {
+//            return "Failed to send OTP";
+//        }
+//    }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOTP(@RequestBody VerifyOTPRequestDTO request) {
-        if (!emailOTPService.verifyOTP(request.getEmail(), request.getOtp())) {
-            System.out.println("Received OTP: " + request.getOtp());
-            System.out.println("Stored OTP: " + emailOTPService.getStoredOTP(request.getEmail()));
-            return ResponseEntity.badRequest().body("Invalid OTP");
-        }
 
-        Optional<Users> userOptional = userRepository.findByEmail(request.getEmail());
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("User not found");
-        }
-
-        Users user = userOptional.get();
-
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            return ResponseEntity.badRequest().body("Passwords do not match");
-        }
-
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Password reset successfully");
-    }
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         Optional<Users> userOptional = userRepository.findByEmail(email);
@@ -200,5 +201,11 @@ public class AuthController {
             password.append(characters.charAt(random.nextInt(characters.length())));
         }
         return password.toString();
+    }
+    // random otp có  6 số
+    private String generateRandomOTP() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // Tạo số từ 100000 - 999999
+        return String.valueOf(otp);
     }
 }
