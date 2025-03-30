@@ -150,8 +150,8 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOTP(@RequestBody VerifyOTPRequestDTO request) {
+    @PostMapping("/verify-otp-forgot")
+    public ResponseEntity<String> verifyOTPForgot(@RequestBody VerifyOTPRequestDTO request) {
         if (!emailOTPService.verifyOTP(request.getEmail(), request.getOtp())) {
             return ResponseEntity.badRequest().body("Invalid or expired OTP");
         }
