@@ -2,6 +2,7 @@ package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.Constants.StatusCodes;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
+import com.Harum.Harum.DTO.VerifyOtpRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
 import com.Harum.Harum.Models.Roles;
 import com.Harum.Harum.Models.Users;
@@ -10,6 +11,7 @@ import com.Harum.Harum.Repository.UserRepo;
 import com.Harum.Harum.Security.HarumUserDetailServices;
 import com.Harum.Harum.Security.JwtUtil;
 import com.Harum.Harum.Services.EmailService;
+
 import com.Harum.Harum.Services.OtpService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -110,7 +112,10 @@ public class AuthController {
 
     // xác thực OTP để tạo tài khoản
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOTP(@RequestParam String email, @RequestParam String otp, @RequestBody Users user) {
+    public ResponseEntity<String> verifyOTP(@RequestBody VerifyOtpRequestDTO request) {
+        String email = request.getEmail();
+        String otp = request.getOtp();
+        Users user = request.getUser();
         if (!otpService.validateOtp(email, otp)) {
             return ResponseEntity.badRequest().body("Invalid or expired OTP");
         }
