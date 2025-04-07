@@ -56,8 +56,8 @@ public class ViewController {
     }
     // Kiểm tra xem user đã tương tác với post chưa
     @GetMapping("/check/{userId}/{postId}")
-    public Optional<Votes> checkUserVote(@PathVariable String userId, @PathVariable String postId) {
-        return viewService.getVoteByUserAndPost(userId, postId);
+    public Optional<Views> checkUserVote(@PathVariable String userId, @PathVariable String postId) {
+      return viewService.getViewByUserAndPost(userId,postId);
     }
 
 

@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface ViewRepo extends MongoRepository<Views, String> {
     // Tìm tất cả lượt xem cho một bài viết theo postId
     List<Views> findByPostId(String postId);
-    Optional<Votes> findByUserIdAndPostId(String userId, String postId);
+    Optional<Views> findByUserIdAndPostId(String userId, String postId);
 }

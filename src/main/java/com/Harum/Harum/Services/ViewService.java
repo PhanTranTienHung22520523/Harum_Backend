@@ -53,7 +53,7 @@ public class ViewService {
         return viewRepository.findByPostId(postId);
     }
     // Kiểm tra xem user đã xem   post hay chưa
-    public Optional<Votes> getVoteByUserAndPost(String userId, String postId) {
+    public Optional<Views> getViewByUserAndPost(String userId, String postId) {
         return viewRepository.findByUserIdAndPostId(userId, postId);
     }
 
