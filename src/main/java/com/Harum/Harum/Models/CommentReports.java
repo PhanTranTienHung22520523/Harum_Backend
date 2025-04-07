@@ -8,21 +8,19 @@ import java.time.Instant;
 import com.Harum.Harum.Enums.ReportStatus;
 @Data
 @Document(collection = "reports")
-public class Reports {
+public class CommentReports {
     @Id
     private String id;
     private String reporterId;
-    private String postId;
     private String commentId;
     private String reason;
     private ReportStatus status;
     private String createdAt;
 
-    public Reports() {}
+    public CommentReports() {}
 
-    public Reports(String reporterId, String postId, String commentId, String reason, ReportStatus status) {
+    public CommentReports(String reporterId,   String commentId, String reason, ReportStatus status) {
         this.reporterId = reporterId;
-        this.postId = postId;
         this.commentId = commentId;
         this.reason = reason;
         this.status = status;
@@ -33,8 +31,7 @@ public class Reports {
     public void setId(String id) { this.id = id; }
     public String getReporterId() { return reporterId; }
     public void setReporterId(String reporterId) { this.reporterId = reporterId; }
-    public String getPostId() { return postId; }
-    public void setPostId(String postId) { this.postId = postId; }
+
     public String getCommentId() { return commentId; }
     public void setCommentId(String commentId) { this.commentId = commentId; }
     public String getReason() { return reason; }
