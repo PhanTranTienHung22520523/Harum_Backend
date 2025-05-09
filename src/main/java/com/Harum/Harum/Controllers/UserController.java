@@ -2,6 +2,7 @@ package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.DTO.EmailRequestDTO;
 import com.Harum.Harum.Models.Users;
+import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.EmailService;
 import com.Harum.Harum.Services.UserService;
 import com.Harum.Harum.DTO.UserProfileDTO;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
@@ -26,6 +28,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     // Get all users
     @GetMapping
@@ -66,11 +70,33 @@ public class UserController {
     }
 
     //Update user profile
-    @PutMapping("/profile/{id}")
-    public ResponseEntity<Users> updateUserProfile(@PathVariable String id, @RequestBody Users userDetails) {
-        Optional<Users> updatedUser = userService.updateUserProfile(id, userDetails);
-        return updatedUser.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PutMapping(value = "/profile/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateUserProfileWithImages(
+            @PathVariable String id,
+            @RequestPart("user") Users userDetails,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar,
+            @RequestPart(value = "cover", required = false) MultipartFile cover) {
+
+        try {
+            // Upload ảnh avatar nếu có
+            if (avatar != null && !avatar.isEmpty()) {
+                String avatarUrl = cloudinaryService.uploadFile(avatar);
+                userDetails.setAvatarUrl(avatarUrl);
+            }
+
+            // Upload ảnh cover nếu có
+            if (cover != null && !cover.isEmpty()) {
+                String coverUrl = cloudinaryService.uploadFile(cover);
+                userDetails.setCoverUrl(coverUrl);
+            }
+
+            Optional<Users> updatedUser = userService.updateUserProfile(id, userDetails);
+            return updatedUser.map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Lỗi khi cập nhật profile: " + e.getMessage());
+        }
     }
     //Change password
 //    @PutMapping("/change-password")

@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 import java.time.Instant;
+import java.util.List;
 
 @Document (collection = "comments")
 @Data
@@ -15,6 +16,8 @@ public class Comments {
     private String postId;
     private String content;
     private String createdAt;
+    private List<Comments> replyComments;
+    private String parentId;
 
     public Comments() {}
     public Comments(String userId, String postId, String content) {
@@ -33,4 +36,16 @@ public class Comments {
     public void setContent(String content) { this.content = content; }
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt() { this.createdAt = Instant.now().toString(); }
+
+    public List<Comments> getReplyComments() {
+        return replyComments;
+    }
+
+    public void setReplyComments(List<Comments> replyComments) {
+        this.replyComments = replyComments;
+    }
+
+    public void setParentId(String parentCommentId) {
+        this.parentId=parentCommentId;
+    }
 }

@@ -11,19 +11,19 @@ import java.time.Instant;
 public class Conversations {
     @Id
     private String id;
-    private String senderId;
-    private String receiverId;
+    private String user1Id;
+    private String user2Id;
 
     public Conversations() {}
 
-    public Conversations(String senderId, String receiverId) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
+    public Conversations(String user1Id, String user2Id) {
+        this.user1Id = user1Id;
+        this.user2Id = user2Id;
     }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getSenderId() { return senderId; }
-    public void setSenderId(String senderId) { this.senderId = senderId; }
-    public String getReceiverId() { return receiverId; }
-    public void setReceiverId(String receiverId) { this.receiverId = receiverId; }
+    public String getuser1Id() { return user1Id; }
+    public void setuser1Id(String user1Id) { this.user1Id = user1Id; }
+    public String getReceiverId() { return user2Id; }
+    public void setuser2Id(String user2Id) { this.user2Id = user2Id; }
 }
