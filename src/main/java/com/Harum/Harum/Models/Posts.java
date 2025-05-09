@@ -3,11 +3,11 @@ package com.Harum.Harum.Models;
 
 import com.Harum.Harum.Enums.PostStatus;
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Document(collection = "posts")
@@ -21,11 +21,12 @@ public class Posts {
     private PostStatus status;
     private String createdAt;
     private String updatedAt;
-    @DBRef  // Liên kết tới Topic
-    private Topics topic;  // Thay vì dùng topicId kiểu String
+    private String topicId;  // Thay vì dùng topicId kiểu String
     private int countLike;
     private int countDislike;
     private int countView;
+
+    private List<PostBlock> contentBlock;
 
     public Posts() {
 
@@ -35,7 +36,7 @@ public class Posts {
 
     }
 
-    public Posts(String userId, String title, String content, String imageUrl, PostStatus status, Date updatedAt,  Topics topic) {
+    public Posts(String userId, String title, String content, String imageUrl, PostStatus status, Date updatedAt,  String topicId, List<PostBlock> contentBlock) {
         this.userId = userId;
         this.title = title;
         this.content = content;
@@ -43,14 +44,15 @@ public class Posts {
         this.status = status;
         this.createdAt = Instant.now().toString();
         this.updatedAt = updatedAt.toString();
-        this.topic = topic;
+        this.topicId = topicId;
         this.countLike = 0;      // Mặc định là 0
         this.countDislike = 0;   // Mặc định là 0
         this.countView = 0;      // Mặc định là 0
+        this.contentBlock=contentBlock;
     }
     // Getter và Setter cho Topic
-    public Topics getTopic() {
-        return topic;
+    public String getTopic() {
+        return topicId;
     }
     public int getCountLike() {
         return countLike;
@@ -75,8 +77,11 @@ public class Posts {
     public void setCountView(int countView) {
         this.countView = countView;
     }
-    public void setTopic(Topics topic) {
-        this.topic = topic;
+    public void setTopicId(String topicId) {
+        this.topicId = topicId;
+    }
+    public String getTopicId(){
+        return topicId;
     }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -101,4 +106,13 @@ public class Posts {
 
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt.toString(); }
+
+    public void setContentBlock(List<PostBlock> contentBlock){
+        this.contentBlock=contentBlock;
+    }
+
+    public List<PostBlock> getContentBlock(){
+        return contentBlock;
+    }
 }
+

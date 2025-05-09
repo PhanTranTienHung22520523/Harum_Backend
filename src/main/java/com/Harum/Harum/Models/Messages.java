@@ -11,19 +11,19 @@ import java.util.Date;
 @Data
 public class Messages {
     @Id
-    private String id;
     private String conversationId;
     private String sendAt;
     private String receivedAt;
-
+    private String senderId;
+    private String receiverId;
+    private String content;
+    private boolean isDeleted=false;
     public Messages() {}
     public Messages(String conversationId, Date receivedAt) {
         this.conversationId = conversationId;
         this.sendAt = Instant.now().toString();
         this.receivedAt = receivedAt.toString();
     }
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
     public String getConversationId() { return conversationId; }
     public void setConversationId(String conversationId) { this.conversationId = conversationId; }
     public String getSendAt() { return sendAt; }
@@ -31,4 +31,17 @@ public class Messages {
     public String getReceivedAt() { return receivedAt; }
     public void setReceivedAt(Date receivedAt) { this.receivedAt = receivedAt.toString(); }
 
+    public void setSenderId(String senderId) {
+        this.senderId=senderId;
+    }
+
+    public void setReceiverId(String receiverId) {
+        this.receiverId=receiverId;
+    }
+
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
 }
