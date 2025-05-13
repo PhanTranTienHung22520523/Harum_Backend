@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.Normalizer;
 import java.util.*;
 
 @RestController
@@ -189,6 +190,9 @@ public class PostController {
             post.setCreatedAt();
             post.setUpdatedAt(new Date());
 
+            // chuan hoa title sau do luu vao DB
+            post.setNormalizedTitle(normalizeText((title)));
+
             Posts saved = postService.createPost(post);
             return ResponseEntity.ok(saved);
 
@@ -238,6 +242,8 @@ public class PostController {
             post.setContentBlock(contentBlocks);
             post.setUpdatedAt(new Date());
             post.setTopicId(topicId);
+            // chuan hoa tile de search
+            post.setNormalizedTitle(normalizeText((title)));
 
             Posts updated = postService.updatePost(id, post);
             return ResponseEntity.ok(updated);
@@ -246,5 +252,15 @@ public class PostController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+    public String normalizeText(String input) {
+        if (input == null) return "";
+
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+        normalized = normalized.replaceAll("đ", "d").replaceAll("Đ", "D");
+
+        return normalized.toLowerCase().replaceAll("[^a-z0-9 ]", "").trim();
     }
 }

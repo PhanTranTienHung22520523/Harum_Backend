@@ -8,10 +8,12 @@ import org.springframework.data.annotation.Id;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-
+import org.springframework.data.mongodb.core.index.TextIndexed;
 @Data
 @Document(collection = "posts")
 public class Posts {
+    @TextIndexed
+    private String normalizedTitle;
     @Id
     private String id;
     private String userId;
@@ -113,6 +115,10 @@ public class Posts {
 
     public List<PostBlock> getContentBlock(){
         return contentBlock;
+    }
+
+    public void setNormalizedTitle(String normalizedTitle) {
+        this.normalizedTitle = normalizedTitle;
     }
 }
 

@@ -1,7 +1,11 @@
 package com.Harum.Harum.Repository;
 
 import com.Harum.Harum.Models.Users;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +19,8 @@ public interface UserRepo extends MongoRepository<Users, String> {
     boolean existsByEmail(String email); // Kiểm tra email đã tồn tại chưa
     Optional<Users> findById(String id);
     List<Users> findAllByIdIn(List<String> ids);
+    @Query("{ $or: [ { 'username': { $regex: ?0, $options: 'i' } }, { 'email': { $regex: ?0, $options: 'i' } } ] }")
+    Page<Users> searchUsers(String keyword, Pageable pageable);
+
+
 }
