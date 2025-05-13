@@ -1,5 +1,6 @@
 package com.Harum.Harum.Controllers;
 
+import com.Harum.Harum.DTO.PostResponseDTO;
 import com.Harum.Harum.Models.PostBlock;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.Topics;
@@ -82,35 +83,54 @@ public class PostController {
         }
         return ResponseEntity.notFound().build();
     }
-
     // 6. Read - Lấy danh sách bài post theo topicId với phân trang
     @GetMapping("/topic/{topicId}")
-    public ResponseEntity<Page<Posts>> getPostsByTopic(@PathVariable String topicId,
-                                                       @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int size) {
-        Page<Posts> posts = postService.getPostsByTopic(topicId, page, size);
-        return ResponseEntity.ok(posts);
+    public ResponseEntity<?> getPostsByTopic(
+            @PathVariable String topicId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            // Page trong Spring bắt đầu từ 0
+            Page<PostResponseDTO> posts = postService.getPostsByTopic(topicId, page - 1, size);
+            return ResponseEntity.ok(posts);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Tham số không hợp lệ: " + e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy topic với ID: " + topicId);
+        } catch (Exception e) {
+            // Ghi log nếu cần thiết
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy danh sách bài viết.");
+        }
     }
 
     // 7. Read - Lấy danh sách bài post theo userId với phân trang
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<Posts>> getPostsByUser(@PathVariable String userId,
-                                                      @RequestParam(defaultValue = "1") int page,
-                                                      @RequestParam(defaultValue = "10") int size) {
-        Page<Posts> posts = postService.getPostsByUser(userId, page, size);
-        return ResponseEntity.ok(posts);
+    public ResponseEntity<?> getPostsByUser(@PathVariable String userId,
+                                            @RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<PostResponseDTO> posts = postService.getPostsByUser(userId, page - 1, size);
+            if (posts.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // 8. Read - Lấy danh sách bài post phổ biến (tính theo lượt xem) với phân trang
     @GetMapping("/popular")
-    public ResponseEntity<Page<Posts>> getPopularPosts(@RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> getPopularPosts(@RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Posts> posts = postService.getPopularPosts(page, size);
+            Page<PostResponseDTO> posts = postService.getPopularPosts(page - 1, size);
             if (posts.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(posts, HttpStatus.OK);
+            return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -118,17 +138,26 @@ public class PostController {
 
     // 9. Read - Lấy danh sách bài viết nổi bật (tính theo lượt upvote) với phân trang
     @GetMapping("/top")
-    public ResponseEntity<Page<Posts>> getTopPosts(@RequestParam(defaultValue = "1") int page,
-                                                   @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> getTopPosts(@RequestParam(defaultValue = "1") int page,
+                                         @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Posts> posts = postService.getTopPosts(page, size);
+            Page<PostResponseDTO> posts = postService.getTopPosts(page - 1, size);
             if (posts.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(posts, HttpStatus.OK);
+            return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // Xử lý ngoại lệ toàn cục trong Controller
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception e) {
+        // Ghi log nếu cần thiết
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Đã xảy ra lỗi trong hệ thống: " + e.getMessage());
     }
     //10. Tao post co anh
     @PostMapping(value = "/with-blocks", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
