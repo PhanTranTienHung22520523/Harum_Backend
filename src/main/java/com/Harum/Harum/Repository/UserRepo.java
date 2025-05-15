@@ -21,6 +21,9 @@ public interface UserRepo extends MongoRepository<Users, String> {
     List<Users> findAllByIdIn(List<String> ids);
     @Query("{ $or: [ { 'username': { $regex: ?0, $options: 'i' } }, { 'email': { $regex: ?0, $options: 'i' } } ] }")
     Page<Users> searchUsers(String keyword, Pageable pageable);
+    @Query("{ 'status': { $regex: '^disable$', $options: 'i' } }")
+    Page<Users> findDisabledUsers(Pageable pageable);
 
-
+    @Query("{ 'status': { $not: { $regex: '^disable$', $options: 'i' } } }")
+    Page<Users> findEnabledUsers(Pageable pageable);
 }

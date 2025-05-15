@@ -1,6 +1,7 @@
 package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.DTO.EmailRequestDTO;
+import com.Harum.Harum.DTO.UserStatusUpdateRequest;
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.EmailService;
@@ -9,6 +10,7 @@ import com.Harum.Harum.DTO.UserProfileDTO;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +35,31 @@ public class UserController {
 
     // Get all users
     @GetMapping
-    public ResponseEntity<List<Users>> getAllUsers() {
-        List<Users> users = userService.getAllUsers();
+    public ResponseEntity<Page<Users>> getAllUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Users> users = userService.getAllUsers(page, size);
         return ResponseEntity.ok(users);
     }
+    // get user account being disable
+    @GetMapping("/disabled")
+    public ResponseEntity<Page<Users>> getDisabledUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
+        Page<Users> users = userService.getDisabledUsers(page, size);
+        return ResponseEntity.ok(users);
+    }
+    // get user account NOT being disable
+    @GetMapping("/enabled")
+    public ResponseEntity<Page<Users>> getEnabledUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Users> users = userService.getEnabledUsers(page, size);
+        return ResponseEntity.ok(users);
+    }
     // Get user by ID
     @GetMapping("/{id}")
     public ResponseEntity<Users> getUserById(@PathVariable String id) {
@@ -126,6 +148,30 @@ public class UserController {
             return "Email sent successfully!";
         } catch (MessagingException e) {
             return "Error while sending email: " + e.getMessage();
+        }
+    }
+
+    // Cập nhật trạng thái tài khoản người dùng và gửi email thông báo trước đó
+    @PutMapping("/status/{id}")
+    public ResponseEntity<?> updateUserStatus(
+            @PathVariable String id,
+            @RequestBody UserStatusUpdateRequest request) {
+        try {
+            Users updatedUser = request.getUser();
+            String subject = "Thông báo thay đổi trạng thái tài khoản";
+
+            emailService.sendEmail(updatedUser.getEmail(), subject, request.getEmailContent());
+
+            Optional<Users> updated = userService.updateUserStatus(id, updatedUser);
+            if (updated.isPresent()) {
+                return ResponseEntity.ok(updated.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MessagingException e) {
+            return ResponseEntity.status(500).body("Lỗi khi gửi email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
         }
     }
 

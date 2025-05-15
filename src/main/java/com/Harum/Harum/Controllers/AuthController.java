@@ -63,6 +63,11 @@ public class AuthController {
         }
 
         Users foundUser = existingUser.get();
+        // Kiểm tra trạng thái tài khoản
+        if ("Disable".equalsIgnoreCase(foundUser.getStatus())) {
+            return ResponseEntity.status(StatusCodes.UNAUTHORIZED.getCode())
+                    .body(Map.of("message", "Login failed. Your account has been disabled."));
+        }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPasswordHash())
         );

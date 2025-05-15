@@ -9,6 +9,9 @@ import com.Harum.Harum.Repository.FollowRepo;
 import com.Harum.Harum.Repository.UserRepo;
 import com.Harum.Harum.Security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +31,21 @@ public class UserService {
     private JwtUtil jwtUtil;
 
     // Get all users
-    public List<Users> getAllUsers() {
-        return userRepository.findAll();
+//    public List<Users> getAllUsers() {
+//        return userRepository.findAll();
+//    }
+    public Page<Users> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        return userRepository.findAll(pageable);
+    }
+    public Page<Users> getDisabledUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return userRepository.findDisabledUsers(pageable);
+    }
+
+    public Page<Users> getEnabledUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return userRepository.findEnabledUsers(pageable);
     }
 
     // Get user by ID
@@ -89,7 +105,7 @@ public class UserService {
             Users u = user.get();
             return Optional.of(new UserProfileDTO(
                     u.getId(), u.getUsername(), u.getEmail(), u.getAvatarUrl(),
-                    u.getCoverUrl(), u.getBio(), followers, followings
+                    u.getCoverUrl(), u.getBio(), u.getStatus(), followers, followings
             ));
         }
         return Optional.empty();
@@ -103,6 +119,15 @@ public class UserService {
             user.setAvatarUrl(updatedUser.getAvatarUrl());
             user.setCoverUrl(updatedUser.getCoverUrl());
             user.setBio(updatedUser.getBio());
+            user.setStatus(updatedUser.getStatus());
+            return userRepository.save(user);
+        });
+    }
+    //Update Disable user status
+    public Optional<Users> updateUserStatus(String id, Users updatedUser) {
+
+        return userRepository.findById(id).map(user -> {
+            user.setStatus(updatedUser.getStatus());
             return userRepository.save(user);
         });
     }
