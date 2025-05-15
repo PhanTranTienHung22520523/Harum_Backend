@@ -110,7 +110,10 @@ public class PostService {
 
             // Lấy username
             userRepository.findById(post.getUserId())
-                    .ifPresent(user -> dto.setUsername(user.getUsername()));
+                    .ifPresent(user -> {
+                        dto.setUsername(user.getUsername());
+                        dto.setUserImage(user.getAvatarUrl());
+                    });
 
             return dto;
         });

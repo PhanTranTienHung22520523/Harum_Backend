@@ -14,6 +14,7 @@ public class PostResponseDTO {
     private String updatedAt;
     private String topicId;
     private String topicName;
+    private String userImage;
     private String userId;
     private String username;
     private int countLike;
@@ -24,7 +25,7 @@ public class PostResponseDTO {
     public PostResponseDTO() {
     }
 
-    public PostResponseDTO(String id, String title, String content, String imageUrl, String status,
+    public PostResponseDTO(String id, String title, String userImage, String content, String imageUrl, String status,
                            String createdAt, String updatedAt, String topicId, String topicName,
                            String userId, String username, int countLike, int countDislike, int countView,
                            List<PostBlock> contentBlock) {
@@ -43,6 +44,7 @@ public class PostResponseDTO {
         this.countDislike = countDislike;
         this.countView = countView;
         this.contentBlock = contentBlock;
+        this.userImage = userImage;
     }
 
     // Getters
@@ -51,6 +53,7 @@ public class PostResponseDTO {
     public String getContent() { return content; }
     public String getImageUrl() { return imageUrl; }
     public String getStatus() { return status; }
+    public String getUserImage(){ return userImage;}
     public String getCreatedAt() { return createdAt; }
     public String getUpdatedAt() { return updatedAt; }
     public String getTopicId() { return topicId; }
@@ -67,6 +70,7 @@ public class PostResponseDTO {
     public void setTitle(String title) { this.title = title; }
     public void setContent(String content) { this.content = content; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setUserImage(String userImage) {this.userImage=userImage;}
     public void setStatus(String status) { this.status = status; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }

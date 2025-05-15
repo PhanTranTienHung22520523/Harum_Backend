@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.apache.commons.text.similarity.LevenshteinDistance;
+
 
 import java.text.Normalizer;
 
@@ -65,7 +65,10 @@ public class SearchService {
 
             // Lấy username
             userRepository.findById(post.getUserId())
-                    .ifPresent(user -> dto.setUsername(user.getUsername()));
+                    .ifPresent(user -> {
+                        dto.setUsername(user.getUsername());
+                        dto.setUserImage(user.getAvatarUrl());
+                    });
 
             return dto;
         });
