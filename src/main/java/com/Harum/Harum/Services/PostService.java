@@ -64,6 +64,12 @@ public class PostService {
         Page<Posts> postsPage = postRepository.findByTopicId(topicId, pageable);
         return convertToPostResponseDTO(postsPage);
     }
+    // 6.1 Read - Lấy danh sách bài post noi bat  theo topicId với phân trang
+    public Page<PostResponseDTO> getTopPostsByTopic(String topicId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("countView")));
+        Page<Posts> postsPage = postRepository.findByTopicId(topicId, pageable);
+        return convertToPostResponseDTO(postsPage);
+    }
 
     // 7. Read - Lấy danh sách bài post theo userId với phân trang
     public Page<PostResponseDTO> getPostsByUser(String userId, int page, int size) {

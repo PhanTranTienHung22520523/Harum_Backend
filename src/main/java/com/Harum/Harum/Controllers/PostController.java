@@ -105,6 +105,26 @@ public class PostController {
                     .body("Đã xảy ra lỗi khi lấy danh sách bài viết.");
         }
     }
+    @GetMapping("/hot-topic/{topicId}")
+    public ResponseEntity<?> getTopPostsByTopic(
+            @PathVariable String topicId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            // Page trong Spring bắt đầu từ 0
+            Page<PostResponseDTO> posts = postService.getPostsByTopic(topicId, page - 1, size);
+            return ResponseEntity.ok(posts);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Tham số không hợp lệ: " + e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy topic với ID: " + topicId);
+        } catch (Exception e) {
+            // Ghi log nếu cần thiết
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy danh sách bài viết.");
+        }
+    }
 
     // 7. Read - Lấy danh sách bài post theo userId với phân trang
     @GetMapping("/user/{userId}")
