@@ -1,6 +1,7 @@
 package com.Harum.Harum.Services;
 
 import com.Harum.Harum.Enums.NotificationTypes;
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Notifications;
 import com.Harum.Harum.Models.Posts;
@@ -123,5 +124,18 @@ public class CommentService {
         return null;
     }
 
+    public Comments updateCommentStatus(String id, ReportStatus status) {
+        Optional<Comments> optionalComment = commentsRepository.findById(id);
+        if (optionalComment.isPresent()) {
+            Comments comment = optionalComment.get();
+            comment.setReportStatus(status);
+            return commentsRepository.save(comment);
+        }
+        return null;
+    }
+
+    public List<Comments> getCommentssByStatus(ReportStatus status) {
+        return commentsRepository.findByStatus(status);
+    }
 
 }

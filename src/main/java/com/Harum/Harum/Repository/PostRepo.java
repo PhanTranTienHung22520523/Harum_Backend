@@ -1,5 +1,6 @@
 package com.Harum.Harum.Repository;
 import com.Harum.Harum.Enums.PostStatus;
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Posts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,5 +17,5 @@ import java.util.List;
 public interface PostRepo extends MongoRepository<Posts, String> {
     Page<Posts> findByTopicId(String topicId, Pageable pageable);  // Lấy bài post theo topicId với phân trang
     Page<Posts> findByUserId(String userId, Pageable pageable);    // Lấy bài post theo userId với phân trang
-    List<Posts> findByStatus(PostStatus status);
+    List<Posts> findByStatus(ReportStatus status);
 }

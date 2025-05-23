@@ -1,6 +1,7 @@
 package com.Harum.Harum.Services;
 
 import com.Harum.Harum.Enums.PostStatus;
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ public class PostService {
         return postRepository.findAll(pageable);
     }
 
-    public List<Posts> getPostsByStatus(PostStatus status) {
+    public List<Posts> getPostsByStatus(ReportStatus status) {
         return postRepository.findByStatus(status);
     }
 }

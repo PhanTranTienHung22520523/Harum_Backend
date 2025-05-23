@@ -1,6 +1,7 @@
 package com.Harum.Harum.Controllers;
 
 import com.Harum.Harum.Enums.PostStatus;
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.PostBlock;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.Topics;
@@ -242,7 +243,7 @@ public class PostController {
 
     @GetMapping("/admin/pending")
     public ResponseEntity<List<Posts>> getPendingPosts() {
-        List<Posts> posts = postService.getPostsByStatus(PostStatus.PENDING);
+        List<Posts> posts = postService.getPostsByStatus(ReportStatus.PENDING);
         return ResponseEntity.ok(posts);
     }
 
@@ -250,13 +251,13 @@ public class PostController {
     @PutMapping("/admin/{id}/status")
     public ResponseEntity<Posts> updatePostStatus(
             @PathVariable("id") String postId,
-            @RequestParam("status") PostStatus status
+            @RequestParam("status") ReportStatus status
     ) {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
 
-        post.setStatus(status);
+        post.setReportStatus(status);
         post.setUpdatedAt(new Date());
         Posts updated = postService.updatePost(postId,post);
         return ResponseEntity.ok(updated);

@@ -2,6 +2,7 @@ package com.Harum.Harum.Models;
 
 
 import com.Harum.Harum.Enums.PostStatus;
+import com.Harum.Harum.Enums.ReportStatus;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
@@ -25,6 +26,7 @@ public class Posts {
     private int countLike;
     private int countDislike;
     private int countView;
+    private ReportStatus reportStatus;
 
     private List<PostBlock> contentBlock;
 
@@ -113,6 +115,13 @@ public class Posts {
 
     public List<PostBlock> getContentBlock(){
         return contentBlock;
+    }
+    public void setReportStatus(ReportStatus reportStatus){
+        this.reportStatus=reportStatus;
+    }
+
+    public ReportStatus getReportStatus() {
+        return reportStatus;
     }
 }
 
