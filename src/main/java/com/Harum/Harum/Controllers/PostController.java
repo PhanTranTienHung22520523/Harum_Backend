@@ -1,8 +1,10 @@
 package com.Harum.Harum.Controllers;
 
+import com.Harum.Harum.Enums.PostStatus;
 import com.Harum.Harum.Models.PostBlock;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.Topics;
+import com.Harum.Harum.Repository.PostRepo;
 import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.PostService;
 import com.Harum.Harum.Services.TopicService;
@@ -33,6 +35,8 @@ public class PostController {
 
     @Autowired
     private TopicService topicService;
+    @Autowired
+    private PostRepo postRepository;
 
     // 1. Create - Tạo mới bài post (chưa xử lý ảnh)
     @PostMapping
@@ -137,26 +141,40 @@ public class PostController {
             @RequestParam("userId") String userId,
             @RequestParam("topicId") String topicId,
             @RequestParam("blocks") String blocksJson,
-            @RequestPart(value = "images", required = false) MultipartFile[] images
+            @RequestPart(value = "images", required = false) MultipartFile[] images,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage
     ) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {});
 
+            // Upload ảnh cover nếu có, nếu không thì dùng mặc định theo topic
+            String coverUrl;
+            if (coverImage != null && !coverImage.isEmpty()) {
+                coverUrl = cloudinaryService.uploadFile(coverImage);
+            } else {
+                coverUrl = getDefaultCoverUrlByTopic(topicId); // URL mặc định theo topic
+            }
+
+            // Upload ảnh trong content blocks
             int imageIndex = 0;
-            for (PostBlock block : contentBlocks) {
-                if ("image".equalsIgnoreCase(block.getType()) && images != null && imageIndex < images.length) {
-                    String url = cloudinaryService.uploadFile(images[imageIndex]);
-                    block.setValue(url);
-                    imageIndex++;
+            if (images != null) {
+                for (PostBlock block : contentBlocks) {
+                    if ("image".equalsIgnoreCase(block.getType()) && imageIndex < images.length) {
+                        String url = cloudinaryService.uploadFile(images[imageIndex]);
+                        block.setValue(url);
+                        imageIndex++;
+                    }
                 }
             }
 
+            // Tạo post
             Posts post = new Posts();
             post.setTitle(title);
             post.setUserId(userId);
             post.setTopicId(topicId);
             post.setContentBlock(contentBlocks);
+            post.setImageUrl(coverUrl); // Gán ảnh cover (upload hoặc mặc định)
             post.setCreatedAt();
             post.setUpdatedAt(new Date());
 
@@ -170,47 +188,50 @@ public class PostController {
     }
 
 
+
+
     // 11. Cập nhật bài viết với content block (ảnh + văn bản hỗn hợp)
     @PutMapping("/with-blocks/{id}")
     public ResponseEntity<Posts> updatePostWithBlocks(
-            @PathVariable String id,
+            @PathVariable("id") String postId,
             @RequestParam("title") String title,
             @RequestParam("topicId") String topicId,
             @RequestParam("blocks") String blocksJson,
-            @RequestPart(value = "images", required = false) MultipartFile[] images
+            @RequestPart(value = "images", required = false) MultipartFile[] images,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage
     ) {
         try {
+            Posts existing = postRepository.findById(postId)
+                    .orElseThrow(() -> new RuntimeException("Post not found"));
+
+
             ObjectMapper objectMapper = new ObjectMapper();
             List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {});
 
-            Map<String, MultipartFile> imageMap = new HashMap<>();
+            // Upload cover mới nếu có
+            if (coverImage != null && !coverImage.isEmpty()) {
+                String coverUrl = cloudinaryService.uploadFile(coverImage);
+                existing.setImageUrl(coverUrl);
+            }
+
+            // Upload ảnh block mới nếu có
+            int imageIndex = 0;
             if (images != null) {
-                for (MultipartFile image : images) {
-                    imageMap.put(image.getOriginalFilename(), image);
-                }
-            }
-
-            for (PostBlock block : contentBlocks) {
-                if ("image".equalsIgnoreCase(block.getType())) {
-                    String key = block.getValue();
-                    if (imageMap.containsKey(key)) {
-                        String url = cloudinaryService.uploadFile(imageMap.get(key));
+                for (PostBlock block : contentBlocks) {
+                    if ("image".equalsIgnoreCase(block.getType()) && imageIndex < images.length) {
+                        String url = cloudinaryService.uploadFile(images[imageIndex]);
                         block.setValue(url);
+                        imageIndex++;
                     }
-                    // Nếu không có ảnh mới thì giữ nguyên đường dẫn cũ
                 }
             }
 
-            Optional<Posts> existingPostOpt = postService.getPostById(id);
-            if (existingPostOpt.isEmpty()) return ResponseEntity.notFound().build();
+            existing.setTitle(title);
+            existing.setTopicId(topicId);
+            existing.setContentBlock(contentBlocks);
+            existing.setUpdatedAt(new Date());
 
-            Posts post = existingPostOpt.get();
-            post.setTitle(title);
-            post.setContentBlock(contentBlocks);
-            post.setUpdatedAt(new Date());
-            post.setTopicId(topicId);
-
-            Posts updated = postService.updatePost(id, post);
+            Posts updated = postService.updatePost(postId, existing);
             return ResponseEntity.ok(updated);
 
         } catch (Exception e) {
@@ -218,4 +239,44 @@ public class PostController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/admin/pending")
+    public ResponseEntity<List<Posts>> getPendingPosts() {
+        List<Posts> posts = postService.getPostsByStatus(PostStatus.PENDING);
+        return ResponseEntity.ok(posts);
+    }
+
+
+    @PutMapping("/admin/{id}/status")
+    public ResponseEntity<Posts> updatePostStatus(
+            @PathVariable("id") String postId,
+            @RequestParam("status") PostStatus status
+    ) {
+        Posts post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+
+        post.setStatus(status);
+        post.setUpdatedAt(new Date());
+        Posts updated = postService.updatePost(postId,post);
+        return ResponseEntity.ok(updated);
+    }
+
+
+    public String getDefaultCoverUrlByTopic(String topicId) {
+        switch (topicId) {
+            case "67f3596980e7a31c46a4e33c": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487233/xahoi_gbpxym.png";
+            case "67f3594480e7a31c46a4e33b": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tinhyeu_exwljq.jpg";
+            case "67f3587d80e7a31c46a4e336": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tranhluan_qs3lav.jpg";
+            case "67f3584980e7a31c46a4e334": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/tamly_hgnz30.jpg";
+            case "67f3585d80e7a31c46a4e335": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/giaoduc_lnfas3.png";
+            case "67f3589080e7a31c46a4e337": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/khoahoc_ifeddd.jpg";
+            case "67f3591980e7a31c46a4e339": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/nghethuat_cmdh6t.jpg";
+            case "67f357e280e7a31c46a4e333": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/thethao_qpanfo.jpg";
+            case "67f358a780e7a31c46a4e338": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/lichsu_kzccug.jpg";
+            case "67f3593780e7a31c46a4e33a": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/sach_iqzymp.jpg";
+            default: return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747323953/leuxd3jchdvo8abhswfx.png";
+        }
+    }
+
 }

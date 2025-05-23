@@ -7,6 +7,7 @@ import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Repository.CommentRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,10 @@ public class CommentService {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
 
     public List<Comments> getAllComments() {
         return commentsRepository.findAll();
@@ -42,26 +47,33 @@ public class CommentService {
     public Comments createComment(Comments comment) {
         Comments saved = commentsRepository.save(comment);
 
-        // Sau khi lưu comment, gửi notification cho chủ bài post
         Optional<Posts> postOpt = postService.getPostById(comment.getPostId());
         if (postOpt.isPresent()) {
             Posts post = postOpt.get();
             String ownerId = post.getUserId();
-            if (!ownerId.equals(comment.getUserId())) { // Không gửi noti nếu tự cmt bài mình
+            if (!ownerId.equals(comment.getUserId())) {
                 Notifications noti = new Notifications(
                         ownerId,
-                        "Người dùng đã bình luận vào bài viết của bạn.",
-                        NotificationTypes.COMMENT, // Enum COMMENT
+                        "Một người dùng đã bình luận vào bài viết của bạn.",
+                        NotificationTypes.COMMENT,
                         comment.getPostId(),
                         saved.getId(),
                         null
                 );
-                notificationService.createNotification(noti);
+                Notifications savedNoti = notificationService.createNotification(noti);
+
+                // Gửi realtime notification qua WebSocket cho user ownerId
+                messagingTemplate.convertAndSendToUser(
+                        ownerId,
+                        "/queue/notifications",
+                        savedNoti
+                );
             }
         }
 
         return saved;
     }
+
 
     public void deleteComment(String id) {
         commentsRepository.deleteById(id);
@@ -87,7 +99,14 @@ public class CommentService {
                         savedReply.getId(),
                         null
                 );
-                notificationService.createNotification(noti);
+                Notifications savedNoti = notificationService.createNotification(noti);
+
+                // Gửi realtime notification qua WebSocket cho user ownerId (chủ comment gốc)
+                messagingTemplate.convertAndSendToUser(
+                        parent.getUserId(),
+                        "/queue/notifications",
+                        savedNoti
+                );
             }
 
             return savedReply;

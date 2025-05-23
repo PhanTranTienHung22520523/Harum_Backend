@@ -1,5 +1,6 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.Enums.PostStatus;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.Harum.Harum.Enums.PostStatus;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,6 +32,7 @@ public class PostService {
     }
 
     // 3. Read - Lấy bài post theo ID
+
     public Optional<Posts> getPostById(String id) {
         return postRepository.findById(id);
     }
@@ -73,5 +77,9 @@ public class PostService {
     public Page<Posts> getTopPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("countLike"))); // Sắp xếp theo countLike giảm dần
         return postRepository.findAll(pageable);
+    }
+
+    public List<Posts> getPostsByStatus(PostStatus status) {
+        return postRepository.findByStatus(status);
     }
 }

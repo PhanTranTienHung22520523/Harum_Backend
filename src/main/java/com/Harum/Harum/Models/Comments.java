@@ -1,6 +1,7 @@
 package com.Harum.Harum.Models;
 
 
+import com.Harum.Harum.Enums.CommentStatus;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
@@ -18,6 +19,7 @@ public class Comments {
     private String createdAt;
     private List<Comments> replyComments;
     private String parentId;
+    private CommentStatus status;
 
     public Comments() {}
     public Comments(String userId, String postId, String content) {
@@ -47,5 +49,13 @@ public class Comments {
 
     public void setParentId(String parentCommentId) {
         this.parentId=parentCommentId;
+    }
+
+    public CommentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CommentStatus status) {
+        this.status = status;
     }
 }

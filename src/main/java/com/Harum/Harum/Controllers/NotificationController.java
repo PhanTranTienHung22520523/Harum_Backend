@@ -4,6 +4,7 @@ import com.Harum.Harum.Models.Notifications;
 import com.Harum.Harum.Services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,9 @@ public class NotificationController {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @GetMapping
     public List<Notifications> getAllNotifications() {
@@ -49,5 +53,9 @@ public class NotificationController {
             return ResponseEntity.ok(updated);
         }
         return ResponseEntity.notFound().build();
+    }
+    @PostMapping("/send/{id}")
+    public void sendNotification(@PathVariable String userId, @RequestBody Notifications notification) {
+        messagingTemplate.convertAndSend("/notifications/" + userId, notification);
     }
 }
