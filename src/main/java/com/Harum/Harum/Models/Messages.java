@@ -44,4 +44,11 @@ public class Messages {
 
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
+
+    public String getSenderId() {
+        return senderId;
+    }
+    public String getReceiverId(){
+        return receiverId;
+    }
 }

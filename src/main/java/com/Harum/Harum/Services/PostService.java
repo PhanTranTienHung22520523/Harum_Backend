@@ -1,6 +1,8 @@
 package com.Harum.Harum.Services;
 
 import com.Harum.Harum.DTO.PostResponseDTO;
+import com.Harum.Harum.Enums.PostStatus;
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Repository.PostRepo;
 import com.Harum.Harum.Repository.TopicRepo;
@@ -11,7 +13,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.Harum.Harum.Enums.PostStatus;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,6 +40,7 @@ public class PostService {
     }
 
     // 3. Read - Lấy bài post theo ID
+
     public Optional<Posts> getPostById(String id) {
         return postRepository.findById(id);
     }
@@ -125,4 +130,8 @@ public class PostService {
         });
     }
 
+
+    public List<Posts> getPostsByStatus(ReportStatus status) {
+        return postRepository.findByStatus(status);
+    }
 }
