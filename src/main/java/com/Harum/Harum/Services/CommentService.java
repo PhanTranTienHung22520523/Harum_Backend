@@ -135,7 +135,7 @@ public class CommentService {
     }
 
     public List<Comments> getCommentssByStatus(ReportStatus status) {
-        return commentsRepository.findByStatus(status);
+        return commentsRepository.findByReportStatus(status);
     }
 
 }

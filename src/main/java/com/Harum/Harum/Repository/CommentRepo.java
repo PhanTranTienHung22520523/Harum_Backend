@@ -11,6 +11,6 @@ public interface CommentRepo extends MongoRepository<Comments, String> {
     List<Comments> findByPostId(String postId);
     List<Comments> findByUserId(String userId);
     long countByPostId(String postId);
-    List<Comments> findByStatus(ReportStatus status);
+    List<Comments> findByReportStatus(ReportStatus status);
 
 }
