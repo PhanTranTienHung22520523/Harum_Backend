@@ -1,5 +1,7 @@
 package com.Harum.Harum.Controllers;
 
+import com.Harum.Harum.DTO.SavedPostResponseDTO;
+import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.SavedPosts;
 import com.Harum.Harum.Services.SavedPostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,10 @@ public class SavedPostController {
     @Autowired
     private SavedPostService savedPostService;
 
+    //lay tat ca savepost
+
+    @GetMapping("/all")
+
     // 1. Tương tác lưu / bỏ lưu
     @PostMapping("/interact")
     public ResponseEntity<String> interactSavedPost(@RequestBody SavedPosts savedPosts) {
@@ -23,11 +29,11 @@ public class SavedPostController {
     }
 
     // 2. Lấy danh sách bài viết đã lưu theo userId
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<SavedPosts>> getSavedPostsByUser(@PathVariable String userId) {
-        List<SavedPosts> savedPosts = savedPostService.getSavedPostByUser(userId);
-        return ResponseEntity.ok(savedPosts);
-    }
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<List<SavedPostResponseDTO>> getSavedPostsByUser(@PathVariable String userId) {
+//        List<SavedPostResponseDTO> savedPosts = savedPostService.getSavedPostByUserDTO(userId);
+//        return ResponseEntity.ok(savedPosts);
+//    }
 
     // 3. Kiểm tra xem bài viết đã được lưu bởi user chưa
     @GetMapping("/check/{userId}/{postId}")
@@ -37,5 +43,11 @@ public class SavedPostController {
     ) {
         boolean isSaved = savedPostService.isPostSaved(userId, postId);
         return ResponseEntity.ok(isSaved);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Posts>> getSavedPostDetails(@PathVariable String userId) {
+        List<Posts> posts = savedPostService.getSavedPostsDetailByUser(userId);
+        return ResponseEntity.ok(posts);
     }
 }

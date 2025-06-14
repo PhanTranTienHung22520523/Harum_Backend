@@ -1,10 +1,13 @@
 package com.Harum.Harum.Services;
 
+
+import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.SavedPosts;
 import com.Harum.Harum.Repository.PostRepo;
 import com.Harum.Harum.Repository.SavedPostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.Harum.Harum.DTO.SavedPostResponseDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,5 +45,25 @@ public class SavedPostService {
 
     public boolean isPostSaved(String userId, String postId) {
         return savedPostRepo.findByUserIdAndPostId(userId, postId).isPresent();
+    }
+
+    public List<SavedPostResponseDTO> getSavedPostByUserDTO(String userId) {
+        List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
+        return savedPosts.stream()
+                .map(sp -> new SavedPostResponseDTO(
+                        sp.getId(),
+                        sp.getUserId(),
+                        sp.getPostId(),
+                        sp.getCreatedAt()
+                )).toList();
+    }
+
+
+    public List<Posts> getSavedPostsDetailByUser(String userId) {
+        List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
+        List<String> postIds = savedPosts.stream()
+                .map(SavedPosts::getPostId)
+                .toList();
+        return postRepo.findAllById(postIds);
     }
 }
