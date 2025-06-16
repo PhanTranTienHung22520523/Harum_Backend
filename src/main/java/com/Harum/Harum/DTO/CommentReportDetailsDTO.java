@@ -16,13 +16,15 @@ public class CommentReportDetailsDTO {
     private String commentOwnerName;
     private String commentOwnerAvatar;
 
+    private String reason;
+
     private String status;
     private String createdAt;
 
     public void ReportDetailsDTO(String reportId, String reporterId, String reporterName, String reporterAvatar,
                             String commentId, String commentContent, String commentOwnerId,
                             String commentOwnerName, String commentOwnerAvatar,
-                            String status, String createdAt) {
+                            String status, String createdAt, String reason) {
         this.reportId = reportId;
         this.reporterId = reporterId;
         this.reporterName = reporterName;
@@ -34,6 +36,7 @@ public class CommentReportDetailsDTO {
         this.commentOwnerAvatar = commentOwnerAvatar;
         this.status = status;
         this.createdAt = createdAt;
+        this.reason=reason;
     }
 
     public String getReportId() {
@@ -74,6 +77,14 @@ public class CommentReportDetailsDTO {
 
     public void setCommentId(String commentId) {
         this.commentId = commentId;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     public String getCommentContent() {

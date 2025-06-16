@@ -59,6 +59,8 @@ public class CommentService {
         return commentsRepository.findById(id).map(this::convertToDTO);
     }
 
+
+
     public List<CommentDetailsDTO> getCommentsByPostId(String postId) {
         List<Comments> comments = commentsRepository.findByPostId(postId);
         List<CommentDetailsDTO> dtoList = new ArrayList<>();
@@ -201,6 +203,8 @@ public class CommentService {
                     return userRepo.findById(userId);
                 });
     }
-
+    public Optional<Comments> getCommentByIdd(String id) {
+        return commentsRepository.findById(id);
+    }
 
 }

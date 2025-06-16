@@ -40,6 +40,9 @@ public class CommentReportService {
         dto.setCommentId(report.getCommentId());
         dto.setStatus(report.getStatus().name());
         dto.setCreatedAt(report.getCreatedAt());
+        dto.setReason(report.getReason());
+
+        System.out.println("xong cmt");
 
 
 
@@ -51,7 +54,7 @@ public class CommentReportService {
 
         System.out.println("xong lay ng report");
         // Lấy thông tin comment và chủ comment
-        commentService.getCommentById(report.getCommentId()).ifPresent(comment -> {
+        commentService.getCommentByIdd(report.getCommentId()).ifPresent(comment -> {
             System.out.println("Lay duoc id");
             dto.setCommentContent(comment.getContent());
             dto.setCommentOwnerId(comment.getUserId());
@@ -61,12 +64,12 @@ public class CommentReportService {
             System.out.println("comment id theo report: "+report.getCommentId());;
         });
         userService.getUserByCommentId(report.getCommentId()).ifPresent(owner -> {
-                    System.out.println("Lay duoc id ng comment: "+ owner.getId()+owner.getUsername()+owner.getAvatarUrl());
-                    dto.setCommentOwnerName(owner.getUsername());
-                    System.out.println("done");
-                    dto.setCommentOwnerAvatar(owner.getAvatarUrl());
-                    System.out.println("done2");
-                });
+            System.out.println("Lay duoc id ng comment: "+ owner.getId()+owner.getUsername()+owner.getAvatarUrl());
+            dto.setCommentOwnerName(owner.getUsername());
+            System.out.println("done");
+            dto.setCommentOwnerAvatar(owner.getAvatarUrl());
+            System.out.println("done2");
+        });
 //        Optional<Users> user=userService.getUserByCommentId(report.getCommentId());
 //        System.out.println("Lay duoc id ng comment: "+ user.get().getId()+user.get().getUsername()+user.get().getAvatarUrl());
 //            if(user.isPresent()){
