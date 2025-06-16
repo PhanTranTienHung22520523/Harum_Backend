@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 import java.time.Instant;
+import java.util.Date;
+
 import com.Harum.Harum.Enums.ReportStatus;
 @Data
 @Document(collection = "reports")
@@ -15,7 +17,7 @@ public class PostReports {
     private String postId;
     private String reason;
     private ReportStatus status;
-    private String createdAt;
+    private String createdAt=Instant.now().toString();
 
     public PostReports() {}
 
@@ -39,5 +41,4 @@ public class PostReports {
     public ReportStatus getStatus() { return status; }
     public void setStatus(ReportStatus status) { this.status = status; }
     public String getCreatedAt() { return createdAt; }
-    public void setCreatedAt() { this.createdAt = Instant.now().toString(); }
 }

@@ -1,9 +1,12 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.DTO.PostDetailsDTO;
 import com.Harum.Harum.DTO.PostResponseDTO;
 import com.Harum.Harum.Enums.PostStatus;
 import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Posts;
+import com.Harum.Harum.Models.Topics;
+import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.PostRepo;
 import com.Harum.Harum.Repository.TopicRepo;
 import com.Harum.Harum.Repository.UserRepo;
@@ -41,10 +44,40 @@ public class PostService {
 
     // 3. Read - Lấy bài post theo ID
 
-    public Optional<Posts> getPostById(String id) {
-        return postRepository.findById(id);
-    }
+   // public Optional<Posts> getPostById(String id) {
+    //    return postRepository.findById(id);
+    //}
+   public Optional<PostDetailsDTO> getPostDetailsById(String postId) {
+       Optional<Posts> postOpt = postRepository.findById(postId);
 
+       if (postOpt.isEmpty()) return Optional.empty();
+
+       Posts post = postOpt.get();
+
+       Optional<Users> userOpt = userRepository.findById(post.getUserId());
+       Optional<Topics> topicOpt = topicRepository.findById(post.getTopicId());
+
+       PostDetailsDTO dto = new PostDetailsDTO();
+       dto.setId(post.getId());
+       dto.setTitle(post.getTitle());
+       dto.setContent(post.getContent());
+       dto.setImageUrl(post.getImageUrl());
+       dto.setTopicId(post.getTopicId());
+       dto.setTopicName(topicOpt.map(Topics::getName).orElse(null));
+       dto.setUserId(post.getUserId());
+       dto.setUsername(userOpt.map(Users::getUsername).orElse(null));
+       dto.setAvatarUrl(userOpt.map(Users::getAvatarUrl).orElse(null));
+       dto.setContentBlock(post.getContentBlock());
+       dto.setCountLike(post.getCountLike());
+       dto.setCountDislike(post.getCountDislike());
+       dto.setCountView(post.getCountView());
+       dto.setCreatedAt(post.getCreatedAt());
+       dto.setUpdatedAt(post.getUpdatedAt());
+       dto.setStatus(post.getStatus());
+       dto.setReportStatus(post.getReportStatus());
+
+       return Optional.of(dto);
+   }
     // 4. Update - Cập nhật bài post theo ID
     public Posts updatePost(String id, Posts updatedPost) {
         if (postRepository.existsById(id)) {

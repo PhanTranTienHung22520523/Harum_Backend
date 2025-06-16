@@ -3,11 +3,14 @@ package com.Harum.Harum.Services;
 import com.Harum.Harum.DTO.UserProfileDTO;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
+import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Roles;
 import com.Harum.Harum.Models.Users;
+import com.Harum.Harum.Repository.CommentRepo;
 import com.Harum.Harum.Repository.FollowRepo;
 import com.Harum.Harum.Repository.UserRepo;
 import com.Harum.Harum.Security.JwtUtil;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +32,9 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private CommentRepo commentRepo;
 
     // Get all users
 //    public List<Users> getAllUsers() {
@@ -130,5 +136,17 @@ public class UserService {
             user.setStatus(updatedUser.getStatus());
             return userRepository.save(user);
         });
+    }
+
+    public Optional<Users> getUserByCommentId(String commentId) {
+        return commentRepo.findById(commentId)
+                .flatMap(comment -> {
+                    String userId = comment.getUserId();
+                    if (userId == null) {
+                        System.out.println("Comment has null userId: " + commentId);
+                        return Optional.empty();
+                    }
+                    return userRepository.findById(userId);
+                });
     }
 }

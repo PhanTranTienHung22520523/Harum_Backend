@@ -1,12 +1,16 @@
 package com.Harum.Harum.Controllers;
 
+import com.Harum.Harum.DTO.PostDetailsDTO;
 import com.Harum.Harum.Enums.PostStatus;
 import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.DTO.PostResponseDTO;
 import com.Harum.Harum.Models.PostBlock;
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.Topics;
+import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.PostRepo;
+import com.Harum.Harum.Repository.TopicRepo;
+import com.Harum.Harum.Repository.UserRepo;
 import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.PostService;
 import com.Harum.Harum.Services.TopicService;
@@ -22,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.text.Normalizer;
 import java.util.*;
@@ -40,6 +45,12 @@ public class PostController {
     private TopicService topicService;
     @Autowired
     private PostRepo postRepository;
+
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private TopicRepo topicRepo;
 
     // 1. Create - Tạo mới bài post (chưa xử lý ảnh)
     @PostMapping
@@ -65,9 +76,34 @@ public class PostController {
 
     // 3. Read - Lấy bài post theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<Posts> getPostById(@PathVariable String id) {
-        Optional<Posts> post = postService.getPostById(id);
-        return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<PostDetailsDTO> getPostById(@PathVariable String id) {
+        Posts post = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy bài viết"));
+
+        Users user = userRepo.findById(post.getUserId()).orElse(null);
+        Topics topic = topicRepo.findById(post.getTopicId()).orElse(null);
+
+        PostDetailsDTO dto = new PostDetailsDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getImageUrl(),
+                post.getTopicId(),
+                topic != null ? topic.getName() : null,
+                post.getUserId(),
+                user != null ? user.getUsername() : null,
+                user != null ? user.getAvatarUrl() : null,
+                post.getContentBlock(),
+                post.getCountLike(),
+                post.getCountDislike(),
+                post.getCountView(),
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                post.getStatus(),
+                post.getReportStatus()
+        );
+
+        return ResponseEntity.ok(dto);
     }
 
     // 4. Update - Cập nhật bài post theo ID

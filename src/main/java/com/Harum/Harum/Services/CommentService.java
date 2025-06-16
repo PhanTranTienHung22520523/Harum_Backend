@@ -1,11 +1,16 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.DTO.CommentDetailsDTO;
+import com.Harum.Harum.DTO.PostDetailsDTO;
 import com.Harum.Harum.Enums.NotificationTypes;
 import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Notifications;
 import com.Harum.Harum.Models.Posts;
+import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.CommentRepo;
+import com.Harum.Harum.Repository.UserRepo;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -28,6 +33,9 @@ public class CommentService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private UserRepo userRepo;
+
 
     public List<Comments> getAllComments() {
         return commentsRepository.findAll();
@@ -37,8 +45,27 @@ public class CommentService {
         return commentsRepository.findById(id);
     }
 
-    public List<Comments> getCommentsByPostId(String postId) {
-        return commentsRepository.findByPostId(postId);
+    public List<CommentDetailsDTO> getCommentsByPostId(String postId) {
+        List<Comments> comments = commentsRepository.findByPostId(postId);
+        List<CommentDetailsDTO> dtoList = new ArrayList<>();
+
+        for (Comments comment : comments) {
+            Users user = userRepo.findById(comment.getUserId()).orElse(null);
+
+            CommentDetailsDTO dto = new CommentDetailsDTO(
+                    comment.getId(),
+                    comment.getPostId(),
+                    comment.getUserId(),
+                    comment.getContent(),
+                    comment.getCreatedAt(),
+                    user != null ? user.getUsername() : null,
+                    user != null ? user.getAvatarUrl() : null
+            );
+
+            dtoList.add(dto);
+        }
+
+        return dtoList;
     }
 
     public List<Comments> getCommentsByUserId(String userId) {
@@ -48,9 +75,9 @@ public class CommentService {
     public Comments createComment(Comments comment) {
         Comments saved = commentsRepository.save(comment);
 
-        Optional<Posts> postOpt = postService.getPostById(comment.getPostId());
+        Optional<PostDetailsDTO> postOpt = postService.getPostDetailsById(comment.getPostId());
         if (postOpt.isPresent()) {
-            Posts post = postOpt.get();
+            PostDetailsDTO post = postOpt.get();
             String ownerId = post.getUserId();
             if (!ownerId.equals(comment.getUserId())) {
                 Notifications noti = new Notifications(
@@ -137,5 +164,18 @@ public class CommentService {
     public List<Comments> getCommentssByStatus(ReportStatus status) {
         return commentsRepository.findByReportStatus(status);
     }
+
+
+    public Optional<Users> getUserByCommentId(String commentId) {
+        return commentsRepository.findById(commentId)
+                .flatMap(comment -> {
+                    String userId = comment.getUserId(); // hoặc getAuthorId(), tùy thuộc vào schema của bạn
+                    if (userId == null) {
+                        return Optional.empty(); // hoặc throw custom exception nếu muốn
+                    }
+                    return userRepo.findById(userId);
+                });
+    }
+
 
 }

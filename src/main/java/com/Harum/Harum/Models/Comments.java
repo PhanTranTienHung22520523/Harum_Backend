@@ -18,11 +18,11 @@ public class Comments {
     private String userId;
     private String postId;
     private String content;
-    private String createdAt;
+    private String createdAt=Instant.now().toString();
     private List<Comments> replyComments;
     private String parentId;
     private ReportStatus reportStatus;
-    private Date updateAt;
+    private String updatedAt;
 
     public Comments() {}
     public Comments(String userId, String postId, String content) {
@@ -40,20 +40,15 @@ public class Comments {
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
     public String getCreatedAt() { return createdAt; }
-    public void setCreatedAt() { this.createdAt = Instant.now().toString(); }
-
     public List<Comments> getReplyComments() {
         return replyComments;
     }
-
     public void setReplyComments(List<Comments> replyComments) {
         this.replyComments = replyComments;
     }
-
     public void setParentId(String parentCommentId) {
         this.parentId=parentCommentId;
     }
-
     public void setReportStatus(ReportStatus reportStatus){
         this.reportStatus=reportStatus;
     }
@@ -61,8 +56,7 @@ public class Comments {
     {
         return this.reportStatus;
     }
-
     public void setUpdatedAt(Date date) {
-        this.updateAt=date;
+        this.updatedAt=date.toString();
     }
 }

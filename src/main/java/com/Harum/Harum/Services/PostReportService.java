@@ -1,6 +1,8 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.DTO.PostReportDetailsDTO;
 import com.Harum.Harum.Enums.ReportStatus;
+import com.Harum.Harum.Models.CommentReports;
 import com.Harum.Harum.Models.PostReports;
 import com.Harum.Harum.Repository.PostReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,29 @@ public class PostReportService {
 
     @Autowired
     private PostReportRepo postReportRepo;
+
+    @Autowired
+    private UserService userService;
+
+
+    private PostReportDetailsDTO toPostReportDetailsDTO(PostReports report) {
+        PostReportDetailsDTO dto = new PostReportDetailsDTO();
+
+        dto.setReportId(report.getId());
+        dto.setReporterId(report.getReporterId());
+        dto.setPostId(report.getPostId());
+        dto.setReason(report.getReason());
+        dto.setStatus(report.getStatus().name());
+        dto.setCreatedAt(report.getCreatedAt());
+
+        // Lấy thông tin người report
+        userService.getUserById(report.getReporterId()).ifPresent(user -> {
+            dto.setReporterName(user.getUsername());
+            dto.setReporterAvatar(user.getAvatarUrl());
+        });
+
+        return dto;
+    }
 
     // 1. Gửi report (nếu chưa tồn tại)
     public String reportPost(PostReports report) {
@@ -29,14 +54,21 @@ public class PostReportService {
     }
 
     // 2. Lấy danh sách report theo bài viết
-    public List<PostReports> getReportsByPostId(String postId) {
-        return postReportRepo.findByPostId(postId);
+    public List<PostReportDetailsDTO> getReportsByPostId(String postId) {
+        return postReportRepo.findByPostId(postId)
+                .stream()
+                .map(this::toPostReportDetailsDTO)
+                .toList();
     }
 
     // 3. Lấy danh sách report theo trạng thái
-    public List<PostReports> getReportsByStatus(ReportStatus status) {
-        return postReportRepo.findByStatus(status);
+    public List<PostReportDetailsDTO> getReportsByStatus(ReportStatus status) {
+        return postReportRepo.findByStatus(status)
+                .stream()
+                .map(this::toPostReportDetailsDTO)
+                .toList();
     }
+
 
     // 4. Cập nhật trạng thái report
 
@@ -52,5 +84,19 @@ public class PostReportService {
         } else {
             return "Report not found";
         }
+    }
+
+    // 5. Lấy tất cả post report
+    public List<PostReportDetailsDTO> getAllReports() {
+        List<PostReports> reports = postReportRepo.findAll();
+        return reports.stream()
+                .map(this::toPostReportDetailsDTO)
+                .toList();
+    }
+
+    //lay theo id
+    public Optional<PostReportDetailsDTO> getReportById(String reportId) {
+        return postReportRepo.findById(reportId)
+                .map(this::toPostReportDetailsDTO);
     }
 }

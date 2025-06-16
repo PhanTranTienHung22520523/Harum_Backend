@@ -1,5 +1,6 @@
 package com.Harum.Harum.Repository;
 
+import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.PostReports;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -17,5 +18,6 @@ public interface PostReportRepo extends MongoRepository<PostReports, String> {
     List<PostReports> findByPostId(String postId);
 
     // Lấy danh sách report theo trạng thái
-    List<PostReports> findByStatus(Enum status);
+    List<PostReports> findByStatus(ReportStatus status);
+
 }

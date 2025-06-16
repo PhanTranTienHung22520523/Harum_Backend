@@ -1,5 +1,6 @@
 package com.Harum.Harum.Controllers;
 
+import com.Harum.Harum.DTO.CommentDetailsDTO;
 import com.Harum.Harum.Enums.ReportStatus;
 import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Posts;
@@ -35,8 +36,9 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}")
-    public List<Comments> getCommentsByPostId(@PathVariable String postId) {
-        return commentsService.getCommentsByPostId(postId);
+    public ResponseEntity<List<CommentDetailsDTO>> getCommentsByPostId(@PathVariable String postId) {
+        List<CommentDetailsDTO> comments = commentsService.getCommentsByPostId(postId);
+        return ResponseEntity.ok(comments);
     }
 
     @GetMapping("/user/{userId}")
