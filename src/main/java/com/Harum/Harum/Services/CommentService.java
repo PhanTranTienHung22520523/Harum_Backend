@@ -58,6 +58,7 @@ public class CommentService {
                     comment.getUserId(),
                     comment.getContent(),
                     comment.getCreatedAt(),
+                    comment.getParentIdc(),
                     user != null ? user.getUsername() : null,
                     user != null ? user.getAvatarUrl() : null
             );

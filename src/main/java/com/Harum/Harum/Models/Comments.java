@@ -49,6 +49,9 @@ public class Comments {
     public void setParentId(String parentCommentId) {
         this.parentId=parentCommentId;
     }
+    public String getParentIdc(){
+        return parentId;
+    }
     public void setReportStatus(ReportStatus reportStatus){
         this.reportStatus=reportStatus;
     }

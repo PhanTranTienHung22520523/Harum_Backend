@@ -1,21 +1,56 @@
 package com.Harum.Harum.DTO;
 
-public class SavedPostResponseDTO {
-    private String id;
-    private String userId;
-    private String postId;
-    private String createdAt;
 
-    public SavedPostResponseDTO(String id, String userId, String postId, String createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.postId = postId;
-        this.createdAt = createdAt;
+import com.Harum.Harum.Models.Users;
+import com.Harum.Harum.Models.Posts;
+
+public class SavedPostResponseDTO {
+    private String savedPostId;
+    private String savedAt;
+    private Users user;
+    private Posts post;
+
+    public SavedPostResponseDTO() {
     }
 
-    // Getters
-    public String getId() { return id; }
-    public String getUserId() { return userId; }
-    public String getPostId() { return postId; }
-    public String getCreatedAt() { return createdAt; }
+    // Constructor đầy đủ
+    public SavedPostResponseDTO(String savedPostId, String savedAt, Users user, Posts post) {
+        this.savedPostId = savedPostId;
+        this.savedAt = savedAt;
+        this.user = user;
+        this.post = post;
+    }
+
+    // Getters và Setters
+    public String getSavedPostId() {
+        return savedPostId;
+    }
+
+    public void setSavedPostId(String savedPostId) {
+        this.savedPostId = savedPostId;
+    }
+
+    public String getSavedAt() {
+        return savedAt;
+    }
+
+    public void setSavedAt(String savedAt) {
+        this.savedAt = savedAt;
+    }
+
+    public Users getUser() {
+        return user;
+    }
+
+    public void setUser(Users user) {
+        this.user = user;
+    }
+
+    public Posts getPost() {
+        return post;
+    }
+
+    public void setPost(Posts post) {
+        this.post = post;
+    }
 }

@@ -3,8 +3,10 @@ package com.Harum.Harum.Services;
 
 import com.Harum.Harum.Models.Posts;
 import com.Harum.Harum.Models.SavedPosts;
+import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.PostRepo;
 import com.Harum.Harum.Repository.SavedPostRepo;
+import com.Harum.Harum.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.Harum.Harum.DTO.SavedPostResponseDTO;
@@ -20,6 +22,9 @@ public class SavedPostService {
 
     @Autowired
     private PostRepo postRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     // Hàm tương tác với bài viết: nếu đã lưu thì xoá, chưa thì thêm mới
     public String interactPost(SavedPosts savedPosts) {
@@ -49,13 +54,21 @@ public class SavedPostService {
 
     public List<SavedPostResponseDTO> getSavedPostByUserDTO(String userId) {
         List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
-        return savedPosts.stream()
-                .map(sp -> new SavedPostResponseDTO(
-                        sp.getId(),
-                        sp.getUserId(),
-                        sp.getPostId(),
-                        sp.getCreatedAt()
-                )).toList();
+
+        Optional<Users> userOpt = userRepo.findById(userId);
+        if (userOpt.isEmpty()) return List.of(); // hoặc throw exception
+
+        Users user = userOpt.get();
+
+        return savedPosts.stream().map(sp -> {
+            Optional<Posts> postOpt = postRepo.findById(sp.getPostId());
+            return postOpt.map(post -> new SavedPostResponseDTO(
+                    sp.getId(),
+                    sp.getCreatedAt(),
+                    user,
+                    post
+            )).orElse(null);
+        }).filter(dto -> dto != null).toList();
     }
 
 
