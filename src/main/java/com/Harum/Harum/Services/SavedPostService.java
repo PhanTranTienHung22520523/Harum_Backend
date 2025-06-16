@@ -52,7 +52,7 @@ public class SavedPostService {
         return savedPostRepo.findByUserIdAndPostId(userId, postId).isPresent();
     }
 
-    public List<SavedPostResponseDTO> getSavedPostByUser(String userId) {
+    public List<SavedPostResponseDTO> getSavedPostsDetailByUser(String userId) {
         List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
 
         Optional<Users> userOpt = userRepo.findById(userId);
@@ -72,7 +72,7 @@ public class SavedPostService {
     }
 
 
-    public List<Posts> getSavedPostsDetailByUser(String userId) {
+    public List<Posts> getSavedPostDetailByUser(String userId) {
         List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
         List<String> postIds = savedPosts.stream()
                 .map(SavedPosts::getPostId)

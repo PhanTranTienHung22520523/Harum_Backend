@@ -46,8 +46,8 @@ public class SavedPostController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Posts>> getSavedPostDetails(@PathVariable String userId) {
-        List<Posts> posts = savedPostService.getSavedPostsDetailByUser(userId);
+    public ResponseEntity<List<SavedPostResponseDTO>> getSavedPostDetails(@PathVariable String userId) {
+        List<SavedPostResponseDTO> posts = savedPostService.getSavedPostsDetailByUser(userId);
         return ResponseEntity.ok(posts);
     }
 }
