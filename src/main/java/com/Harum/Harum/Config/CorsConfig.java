@@ -14,7 +14,8 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // ✅ Cho phép frontend React
+//        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // ✅ Cho phép frontend React
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://java-harum.vercel.app"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
