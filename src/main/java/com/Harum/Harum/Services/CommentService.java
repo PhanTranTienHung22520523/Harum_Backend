@@ -37,12 +37,26 @@ public class CommentService {
     private UserRepo userRepo;
 
 
+    private CommentDetailsDTO convertToDTO(Comments comment) {
+        Users user = userRepo.findById(comment.getUserId()).orElse(null);
+        return new CommentDetailsDTO(
+                comment.getId(),
+                comment.getPostId(),
+                comment.getUserId(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                comment.getParentIdc(),
+                user != null ? user.getUsername() : null,
+                user != null ? user.getAvatarUrl() : null
+        );
+    }
+
     public List<Comments> getAllComments() {
         return commentsRepository.findAll();
     }
 
-    public Optional<Comments> getCommentById(String id) {
-        return commentsRepository.findById(id);
+    public Optional<CommentDetailsDTO> getCommentById(String id) {
+        return commentsRepository.findById(id).map(this::convertToDTO);
     }
 
     public List<CommentDetailsDTO> getCommentsByPostId(String postId) {
@@ -69,8 +83,13 @@ public class CommentService {
         return dtoList;
     }
 
-    public List<Comments> getCommentsByUserId(String userId) {
-        return commentsRepository.findByUserId(userId);
+    public List<CommentDetailsDTO> getCommentsByUserId(String userId) {
+        List<Comments> comments = commentsRepository.findByUserId(userId);
+        List<CommentDetailsDTO> dtoList = new ArrayList<>();
+        for (Comments c : comments) {
+            dtoList.add(convertToDTO(c));
+        }
+        return dtoList;
     }
 
     public Comments createComment(Comments comment) {
@@ -162,8 +181,13 @@ public class CommentService {
         return null;
     }
 
-    public List<Comments> getCommentssByStatus(ReportStatus status) {
-        return commentsRepository.findByReportStatus(status);
+    public List<CommentDetailsDTO> getCommentssByStatus(ReportStatus status) {
+        List<Comments> comments = commentsRepository.findByReportStatus(status);
+        List<CommentDetailsDTO> dtoList = new ArrayList<>();
+        for (Comments c : comments) {
+            dtoList.add(convertToDTO(c));
+        }
+        return dtoList;
     }
 
 

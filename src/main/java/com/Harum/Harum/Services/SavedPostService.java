@@ -44,15 +44,15 @@ public class SavedPostService {
         }
     }
 
-    public List<SavedPosts> getSavedPostByUser(String userId) {
-        return savedPostRepo.findByUserId(userId);
-    }
+//    public List<SavedPosts> getSavedPostByUser(String userId) {
+//        return savedPostRepo.findByUserId(userId);
+//    }
 
     public boolean isPostSaved(String userId, String postId) {
         return savedPostRepo.findByUserIdAndPostId(userId, postId).isPresent();
     }
 
-    public List<SavedPostResponseDTO> getSavedPostByUserDTO(String userId) {
+    public List<SavedPostResponseDTO> getSavedPostByUser(String userId) {
         List<SavedPosts> savedPosts = savedPostRepo.findByUserId(userId);
 
         Optional<Users> userOpt = userRepo.findById(userId);

@@ -31,7 +31,7 @@ public class CommentController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Comments> getCommentById(@PathVariable String id) {
+    public Optional<CommentDetailsDTO> getCommentById(@PathVariable String id) {
         return commentsService.getCommentById(id);
     }
 
@@ -42,7 +42,7 @@ public class CommentController {
     }
 
     @GetMapping("/user/{userId}")
-    public List<Comments> getCommentsByUserId(@PathVariable String userId) {
+    public List<CommentDetailsDTO> getCommentsByUserId(@PathVariable String userId) {
         return commentsService.getCommentsByUserId(userId);
     }
 
@@ -80,8 +80,8 @@ public class CommentController {
     }
 
     @GetMapping("/admin/pending")
-    public ResponseEntity<List<Comments>> getPendingPosts() {
-        List<Comments> commentss = commentsService.getCommentssByStatus(ReportStatus.PENDING);
+    public ResponseEntity<List<CommentDetailsDTO>> getPendingPosts() {
+        List<CommentDetailsDTO> commentss = commentsService.getCommentssByStatus(ReportStatus.PENDING);
         return ResponseEntity.ok(commentss);
     }
 
