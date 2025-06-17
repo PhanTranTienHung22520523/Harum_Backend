@@ -7,6 +7,7 @@ import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.EmailService;
 import com.Harum.Harum.Services.UserService;
 import com.Harum.Harum.DTO.UserProfileDTO;
+import com.Harum.Harum.DTO.UserStatusPatchRequest;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +42,7 @@ public class UserController {
         Page<Users> users = userService.getAllUsers(page, size);
         return ResponseEntity.ok(users);
     }
+
     // get user account being disable
     @GetMapping("/disabled")
     public ResponseEntity<Page<Users>> getDisabledUsers(
@@ -51,6 +52,7 @@ public class UserController {
         Page<Users> users = userService.getDisabledUsers(page, size);
         return ResponseEntity.ok(users);
     }
+
     // get user account NOT being disable
     @GetMapping("/enabled")
     public ResponseEntity<Page<Users>> getEnabledUsers(
@@ -60,6 +62,7 @@ public class UserController {
         Page<Users> users = userService.getEnabledUsers(page, size);
         return ResponseEntity.ok(users);
     }
+
     // Get user by ID
     @GetMapping("/{id}")
     public ResponseEntity<Users> getUserById(@PathVariable String id) {
@@ -67,13 +70,13 @@ public class UserController {
         return user.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-//
-//    // Create new user
-//    @PostMapping
-//    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-//        Users createdUser = userService.createUser(user);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-//    }
+    //
+    // // Create new user
+    // @PostMapping
+    // public ResponseEntity<Users> createUser(@RequestBody Users user) {
+    // Users createdUser = userService.createUser(user);
+    // return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    // }
 
     // Update user
     @PutMapping("/{id}")
@@ -83,7 +86,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    //Get user profile
+    // Get user profile
     @GetMapping(value = "/profile/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUserProfile(@PathVariable String id) {
         Optional<UserProfileDTO> userProfile = userService.getUserProfile(id);
@@ -91,7 +94,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    //Update user profile
+    // Update user profile
     @PutMapping(value = "/profile/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUserProfileWithImages(
             @PathVariable String id,
@@ -120,17 +123,18 @@ public class UserController {
                     .body("Lỗi khi cập nhật profile: " + e.getMessage());
         }
     }
-    //Change password
-//    @PutMapping("/change-password")
-//    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequestDTO changePasswordDTO,
-//                                            @RequestHeader("Authorization") String token) {
-//        try {
-//            userService.changePassword(changePasswordDTO, token);
-//            return ResponseEntity.ok("Đổi mật khẩu thành công");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        }
-//    }
+    // Change password
+    // @PutMapping("/change-password")
+    // public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequestDTO
+    // changePasswordDTO,
+    // @RequestHeader("Authorization") String token) {
+    // try {
+    // userService.changePassword(changePasswordDTO, token);
+    // return ResponseEntity.ok("Đổi mật khẩu thành công");
+    // } catch (Exception e) {
+    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    // }
+    // }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     // Delete user
@@ -168,6 +172,36 @@ public class UserController {
             } else {
                 return ResponseEntity.notFound().build();
             }
+        } catch (MessagingException e) {
+            return ResponseEntity.status(500).body("Lỗi khi gửi email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
+        }
+    }
+
+    // hàm mới:
+    @PutMapping("/put-status/{id}")
+    public ResponseEntity<?> updateUserStatus(
+            @PathVariable String id,
+            @RequestBody UserStatusPatchRequest request) { // <-- Dùng DTO mới
+        try {
+            // Tìm user để lấy email
+            Optional<Users> userOptional = userService.getUserById(id); // Giả sử có hàm này
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Users user = userOptional.get();
+
+            // Gửi email
+            String subject = "Thông báo thay đổi trạng thái tài khoản";
+            emailService.sendEmail(user.getEmail(), subject, request.getEmailContent());
+
+            // Cập nhật status
+            // Truyền newStatus vào service thay vì cả object
+            Optional<Users> updated = userService.patchUserStatus(id, request.getStatus());
+
+            return ResponseEntity.ok(updated.get());
+
         } catch (MessagingException e) {
             return ResponseEntity.status(500).body("Lỗi khi gửi email: " + e.getMessage());
         } catch (Exception e) {
