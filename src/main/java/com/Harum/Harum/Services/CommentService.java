@@ -36,7 +36,6 @@ public class CommentService {
     @Autowired
     private UserRepo userRepo;
 
-
     private CommentDetailsDTO convertToDTO(Comments comment) {
         Users user = userRepo.findById(comment.getUserId()).orElse(null);
         return new CommentDetailsDTO(
@@ -46,9 +45,9 @@ public class CommentService {
                 comment.getContent(),
                 comment.getCreatedAt(),
                 comment.getParentIdc(),
+                comment.getStatus(),
                 user != null ? user.getUsername() : null,
-                user != null ? user.getAvatarUrl() : null
-        );
+                user != null ? user.getAvatarUrl() : null);
     }
 
     public List<Comments> getAllComments() {
@@ -58,8 +57,6 @@ public class CommentService {
     public Optional<CommentDetailsDTO> getCommentById(String id) {
         return commentsRepository.findById(id).map(this::convertToDTO);
     }
-
-
 
     public List<CommentDetailsDTO> getCommentsByPostId(String postId) {
         List<Comments> comments = commentsRepository.findByPostId(postId);
@@ -75,9 +72,9 @@ public class CommentService {
                     comment.getContent(),
                     comment.getCreatedAt(),
                     comment.getParentIdc(),
+                    comment.getStatus(),
                     user != null ? user.getUsername() : null,
-                    user != null ? user.getAvatarUrl() : null
-            );
+                    user != null ? user.getAvatarUrl() : null);
 
             dtoList.add(dto);
         }
@@ -94,6 +91,23 @@ public class CommentService {
         return dtoList;
     }
 
+    public CommentDetailsDTO toggleCommentStatus(String commentId) {
+        Comments comment = commentsRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
+
+        String currentStatus = comment.getStatus();
+
+        if ("ENABLE".equals(currentStatus)) {
+            comment.setStatus("DISABLE");
+        } else {
+            comment.setStatus("ENABLE");
+        }
+
+        Comments updatedComment = commentsRepository.save(comment);
+
+        return convertToDTO(updatedComment);
+    }
+
     public Comments createComment(Comments comment) {
         Comments saved = commentsRepository.save(comment);
 
@@ -108,29 +122,28 @@ public class CommentService {
                         NotificationTypes.COMMENT,
                         comment.getPostId(),
                         saved.getId(),
-                        null
-                );
+                        null);
                 Notifications savedNoti = notificationService.createNotification(noti);
 
                 // Gửi realtime notification qua WebSocket cho user ownerId
                 messagingTemplate.convertAndSendToUser(
                         ownerId,
                         "/queue/notifications",
-                        savedNoti
-                );
+                        savedNoti);
             }
         }
 
         return saved;
     }
 
-
     public void deleteComment(String id) {
         commentsRepository.deleteById(id);
     }
+
     public long countCommentsByPostId(String postId) {
         return commentsRepository.countByPostId(postId);
     }
+
     public Comments addReplyComment(String parentCommentId, Comments reply) {
         Optional<Comments> parentOpt = commentsRepository.findById(parentCommentId);
         if (parentOpt.isPresent()) {
@@ -147,22 +160,21 @@ public class CommentService {
                         NotificationTypes.COMMENT,
                         reply.getPostId(),
                         savedReply.getId(),
-                        null
-                );
+                        null);
                 Notifications savedNoti = notificationService.createNotification(noti);
 
                 // Gửi realtime notification qua WebSocket cho user ownerId (chủ comment gốc)
                 messagingTemplate.convertAndSendToUser(
                         parent.getUserId(),
                         "/queue/notifications",
-                        savedNoti
-                );
+                        savedNoti);
             }
 
             return savedReply;
         }
         return null;
     }
+
     public Comments updateComment(String id, String newContent) {
         Optional<Comments> optionalComment = commentsRepository.findById(id);
         if (optionalComment.isPresent()) {
@@ -192,7 +204,6 @@ public class CommentService {
         return dtoList;
     }
 
-
     public Optional<Users> getUserByCommentId(String commentId) {
         return commentsRepository.findById(commentId)
                 .flatMap(comment -> {
@@ -203,6 +214,7 @@ public class CommentService {
                     return userRepo.findById(userId);
                 });
     }
+
     public Optional<Comments> getCommentByIdd(String id) {
         return commentsRepository.findById(id);
     }

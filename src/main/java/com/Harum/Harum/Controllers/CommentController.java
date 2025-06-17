@@ -41,6 +41,12 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<CommentDetailsDTO> toggleCommentStatus(@PathVariable String id) {
+        CommentDetailsDTO updatedCommentDto = commentsService.toggleCommentStatus(id);
+        return ResponseEntity.ok(updatedCommentDto);
+    }
+
     @GetMapping("/user/{userId}")
     public List<CommentDetailsDTO> getCommentsByUserId(@PathVariable String userId) {
         return commentsService.getCommentsByUserId(userId);
@@ -88,11 +94,9 @@ public class CommentController {
     @PutMapping("/admin/{id}/status")
     public ResponseEntity<Comments> updatePostStatus(
             @PathVariable("id") String commentId,
-            @RequestParam("status") ReportStatus status
-    ) {
+            @RequestParam("status") ReportStatus status) {
         Comments comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
-
 
         comment.setReportStatus(status);
         comment.setUpdatedAt(new Date());
