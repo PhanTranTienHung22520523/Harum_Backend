@@ -69,7 +69,7 @@ public class PostController {
     // 2. Read - Lấy tất cả bài post với phân trang
     @GetMapping
     public ResponseEntity<Page<Posts>> getAllPosts(@RequestParam(defaultValue = "1") int page,
-                                                   @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         Page<Posts> posts = postService.getAllPosts(page, size);
         return ResponseEntity.ok(posts);
     }
@@ -100,10 +100,15 @@ public class PostController {
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 post.getStatus(),
-                post.getReportStatus()
-        );
+                post.getReportStatus());
 
         return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<PostResponseDTO> togglePostStatus(@PathVariable String id) {
+        PostResponseDTO updatedPostDto = postService.togglePostStatus(id);
+        return ResponseEntity.ok(updatedPostDto);
     }
 
     // 4. Update - Cập nhật bài post theo ID
@@ -125,6 +130,7 @@ public class PostController {
         }
         return ResponseEntity.notFound().build();
     }
+
     // 6. Read - Lấy danh sách bài post theo topicId với phân trang
     @GetMapping("/topic/{topicId}")
     public ResponseEntity<?> getPostsByTopic(
@@ -146,6 +152,7 @@ public class PostController {
                     .body("Đã xảy ra lỗi khi lấy danh sách bài viết.");
         }
     }
+
     @GetMapping("/hot-topic/{topicId}")
     public ResponseEntity<?> getTopPostsByTopic(
             @PathVariable String topicId,
@@ -170,8 +177,8 @@ public class PostController {
     // 7. Read - Lấy danh sách bài post theo userId với phân trang
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getPostsByUser(@PathVariable String userId,
-                                            @RequestParam(defaultValue = "1") int page,
-                                            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
             Page<PostResponseDTO> posts = postService.getPostsByUser(userId, page - 1, size);
             if (posts.isEmpty()) {
@@ -186,7 +193,7 @@ public class PostController {
     // 8. Read - Lấy danh sách bài post phổ biến (tính theo lượt xem) với phân trang
     @GetMapping("/popular")
     public ResponseEntity<?> getPopularPosts(@RequestParam(defaultValue = "1") int page,
-                                             @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
             Page<PostResponseDTO> posts = postService.getPopularPosts(page - 1, size);
             if (posts.isEmpty()) {
@@ -198,10 +205,11 @@ public class PostController {
         }
     }
 
-    // 9. Read - Lấy danh sách bài viết nổi bật (tính theo lượt upvote) với phân trang
+    // 9. Read - Lấy danh sách bài viết nổi bật (tính theo lượt upvote) với phân
+    // trang
     @GetMapping("/top")
     public ResponseEntity<?> getTopPosts(@RequestParam(defaultValue = "1") int page,
-                                         @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
             Page<PostResponseDTO> posts = postService.getTopPosts(page - 1, size);
             if (posts.isEmpty()) {
@@ -221,7 +229,8 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Đã xảy ra lỗi trong hệ thống: " + e.getMessage());
     }
-    //10. Tao post co anh
+
+    // 10. Tao post co anh
     @PostMapping(value = "/with-blocks", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Posts> createPostWithBlocks(
             @RequestParam("title") String title,
@@ -229,11 +238,11 @@ public class PostController {
             @RequestParam("topicId") String topicId,
             @RequestParam("blocks") String blocksJson,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage
-    ) {
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {});
+            List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {
+            });
 
             // Upload ảnh cover nếu có, nếu không thì dùng mặc định theo topic
             String coverUrl;
@@ -277,9 +286,6 @@ public class PostController {
         }
     }
 
-
-
-
     // 11. Cập nhật bài viết với content block (ảnh + văn bản hỗn hợp)
     @PutMapping("/with-blocks/{id}")
     public ResponseEntity<Posts> updatePostWithBlocks(
@@ -288,15 +294,14 @@ public class PostController {
             @RequestParam("topicId") String topicId,
             @RequestParam("blocks") String blocksJson,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage
-    ) {
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         try {
             Posts existing = postRepository.findById(postId)
                     .orElseThrow(() -> new RuntimeException("Post not found"));
 
-
             ObjectMapper objectMapper = new ObjectMapper();
-            List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {});
+            List<PostBlock> contentBlocks = objectMapper.readValue(blocksJson, new TypeReference<>() {
+            });
 
             // Upload cover mới nếu có
             if (coverImage != null && !coverImage.isEmpty()) {
@@ -336,41 +341,49 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-
     @PutMapping("/admin/{id}/status")
     public ResponseEntity<Posts> updatePostStatus(
             @PathVariable("id") String postId,
-            @RequestParam("status") ReportStatus status
-    ) {
+            @RequestParam("status") ReportStatus status) {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-
         post.setReportStatus(status);
         post.setUpdatedAt(new Date());
-        Posts updated = postService.updatePost(postId,post);
+        Posts updated = postService.updatePost(postId, post);
         return ResponseEntity.ok(updated);
     }
 
-
     public String getDefaultCoverUrlByTopic(String topicId) {
         switch (topicId) {
-            case "67f3596980e7a31c46a4e33c": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487233/xahoi_gbpxym.png";
-            case "67f3594480e7a31c46a4e33b": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tinhyeu_exwljq.jpg";
-            case "67f3587d80e7a31c46a4e336": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tranhluan_qs3lav.jpg";
-            case "67f3584980e7a31c46a4e334": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/tamly_hgnz30.jpg";
-            case "67f3585d80e7a31c46a4e335": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/giaoduc_lnfas3.png";
-            case "67f3589080e7a31c46a4e337": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/khoahoc_ifeddd.jpg";
-            case "67f3591980e7a31c46a4e339": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/nghethuat_cmdh6t.jpg";
-            case "67f357e280e7a31c46a4e333": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/thethao_qpanfo.jpg";
-            case "67f358a780e7a31c46a4e338": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/lichsu_kzccug.jpg";
-            case "67f3593780e7a31c46a4e33a": return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/sach_iqzymp.jpg";
-            default: return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747323953/leuxd3jchdvo8abhswfx.png";
+            case "67f3596980e7a31c46a4e33c":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487233/xahoi_gbpxym.png";
+            case "67f3594480e7a31c46a4e33b":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tinhyeu_exwljq.jpg";
+            case "67f3587d80e7a31c46a4e336":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/tranhluan_qs3lav.jpg";
+            case "67f3584980e7a31c46a4e334":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/tamly_hgnz30.jpg";
+            case "67f3585d80e7a31c46a4e335":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/giaoduc_lnfas3.png";
+            case "67f3589080e7a31c46a4e337":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/khoahoc_ifeddd.jpg";
+            case "67f3591980e7a31c46a4e339":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487231/nghethuat_cmdh6t.jpg";
+            case "67f357e280e7a31c46a4e333":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/thethao_qpanfo.jpg";
+            case "67f358a780e7a31c46a4e338":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/lichsu_kzccug.jpg";
+            case "67f3593780e7a31c46a4e33a":
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747487232/sach_iqzymp.jpg";
+            default:
+                return "https://res.cloudinary.com/dgwokfdvm/image/upload/v1747323953/leuxd3jchdvo8abhswfx.png";
         }
     }
 
     public String normalizeText(String input) {
-        if (input == null) return "";
+        if (input == null)
+            return "";
 
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
                 .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
