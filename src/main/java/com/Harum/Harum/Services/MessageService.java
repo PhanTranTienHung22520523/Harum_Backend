@@ -30,6 +30,7 @@ public class MessageService {
     public Messages sendMessage(String senderId, String receiverId, String messageText) {
         Conversations conv = getOrCreateConversation(senderId, receiverId);
         Messages msg = new Messages(conv.getId(), new Date());
+        msg.setConversationId(conv.getId());
         msg.setSenderId(senderId);
         msg.setReceiverId(receiverId);
         msg.setSendAt(new Date().toInstant().toString());
