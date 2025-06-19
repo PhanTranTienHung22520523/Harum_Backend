@@ -2,7 +2,10 @@ package com.Harum.Harum.Controllers;
 
 
 
+import com.Harum.Harum.DTO.UserContactsDTO;
+import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.ConversationRepo;
+import com.Harum.Harum.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -13,9 +16,7 @@ import com.Harum.Harum.Models.Messages;
 import com.Harum.Harum.Models.Conversations;
 import com.Harum.Harum.Services.MessageService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -25,6 +26,9 @@ public class MessageController {
 
     @Autowired
     private ConversationRepo conversationRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
 
     @Autowired
@@ -82,9 +86,37 @@ public class MessageController {
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, savedMessage);
     }
 
-    //
+    //get all conversation
     @GetMapping("/conversations")
     public List<Conversations> getAllConversations() {
         return conversationRepo.findAll();
+    }
+
+    //get all conversation of 1 user
+    @GetMapping("/conversations/contacts/{userId}")
+    public List<UserContactsDTO> getContactsByUserId(@PathVariable String userId) {
+        List<Conversations> conversations = conversationRepo.findByUser1IdOrUser2Id(userId, userId);
+        Set<String> contactIds = new HashSet<>();
+
+        for (Conversations convo : conversations) {
+            if (convo.getUser1Id().equals(userId)) {
+                contactIds.add(convo.getReceiverId());
+            } else if (convo.getReceiverId().equals(userId)) {
+                contactIds.add(convo.getUser1Id());
+            }
+        }
+
+        List<Users> contacts = userRepo.findByIdIn(new ArrayList<>(contactIds));
+
+        List<UserContactsDTO> result = new ArrayList<>();
+        for (Users user : contacts) {
+            result.add(new UserContactsDTO(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getAvatarUrl()
+            ));
+        }
+
+        return result;
     }
 }

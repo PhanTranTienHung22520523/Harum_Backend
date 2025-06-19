@@ -22,8 +22,16 @@ public class Conversations {
     }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getuser1Id() { return user1Id; }
+
     public void setuser1Id(String user1Id) { this.user1Id = user1Id; }
     public String getReceiverId() { return user2Id; }
     public void setuser2Id(String user2Id) { this.user2Id = user2Id; }
+
+    public String getUser1Id() {
+        return user1Id;
+    }
+
+    public String getUser2Id() {
+        return user2Id;
+    }
 }

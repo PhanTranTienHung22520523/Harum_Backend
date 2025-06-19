@@ -26,4 +26,6 @@ public interface UserRepo extends MongoRepository<Users, String> {
 
     @Query("{ 'status': { $not: { $regex: '^disable$', $options: 'i' } } }")
     Page<Users> findEnabledUsers(Pageable pageable);
+
+    List<Users> findByIdIn(List<String> ids);
 }
