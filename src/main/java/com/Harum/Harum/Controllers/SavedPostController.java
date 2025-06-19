@@ -19,7 +19,7 @@ public class SavedPostController {
 
     //lay tat ca savepost
 
-    @GetMapping("/all")
+
 
     // 1. Tương tác lưu / bỏ lưu
     @PostMapping("/interact")
