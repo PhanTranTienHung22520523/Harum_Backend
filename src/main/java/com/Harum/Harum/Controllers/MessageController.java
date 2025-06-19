@@ -2,6 +2,7 @@ package com.Harum.Harum.Controllers;
 
 
 
+import com.Harum.Harum.Repository.ConversationRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -21,6 +22,9 @@ import java.util.Optional;
 public class MessageController {
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private ConversationRepo conversationRepo;
 
 
     @Autowired
@@ -76,5 +80,11 @@ public class MessageController {
 
         // Gửi message tới topic riêng của conversationId
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, savedMessage);
+    }
+
+    //
+    @GetMapping("/conversations")
+    public List<Conversations> getAllConversations() {
+        return conversationRepo.findAll();
     }
 }
