@@ -1,6 +1,5 @@
 package com.Harum.Harum.Models;
 
-
 import com.Harum.Harum.Enums.PostStatus;
 import com.Harum.Harum.Enums.ReportStatus;
 import lombok.Data;
@@ -10,6 +9,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.springframework.data.mongodb.core.index.TextIndexed;
+
 @Data
 @Document(collection = "posts")
 public class Posts {
@@ -21,10 +21,10 @@ public class Posts {
     private String title;
     private String content;
     private String imageUrl;
-    private PostStatus status;
+    private PostStatus status = PostStatus.PENDING;
     private String createdAt;
     private String updatedAt;
-    private String topicId;  // Thay vì dùng topicId kiểu String
+    private String topicId; // Thay vì dùng topicId kiểu String
     private int countLike;
     private int countDislike;
     private int countView;
@@ -34,13 +34,14 @@ public class Posts {
 
     public Posts() {
 
-            this.countLike = 0;      // Mặc định là 0
-            this.countDislike = 0;   // Mặc định là 0
-            this.countView = 0;      // Mặc định là 0
+        this.countLike = 0; // Mặc định là 0
+        this.countDislike = 0; // Mặc định là 0
+        this.countView = 0; // Mặc định là 0
 
     }
 
-    public Posts(String userId, String title, String content, String imageUrl, PostStatus status, Date updatedAt,  String topicId, List<PostBlock> contentBlock) {
+    public Posts(String userId, String title, String content, String imageUrl, PostStatus status, Date updatedAt,
+            String topicId, List<PostBlock> contentBlock) {
         this.userId = userId;
         this.title = title;
         this.content = content;
@@ -49,15 +50,17 @@ public class Posts {
         this.createdAt = Instant.now().toString();
         this.updatedAt = updatedAt.toString();
         this.topicId = topicId;
-        this.countLike = 0;      // Mặc định là 0
-        this.countDislike = 0;   // Mặc định là 0
-        this.countView = 0;      // Mặc định là 0
-        this.contentBlock=contentBlock;
+        this.countLike = 0; // Mặc định là 0
+        this.countDislike = 0; // Mặc định là 0
+        this.countView = 0; // Mặc định là 0
+        this.contentBlock = contentBlock;
     }
+
     // Getter và Setter cho Topic
     public String getTopic() {
         return topicId;
     }
+
     public int getCountLike() {
         return countLike;
     }
@@ -81,53 +84,96 @@ public class Posts {
     public void setCountView(int countView) {
         this.countView = countView;
     }
+
     public void setTopicId(String topicId) {
         this.topicId = topicId;
     }
-    public String getTopicId(){
+
+    public String getTopicId() {
         return topicId;
     }
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public PostStatus getStatus() { return status; }
-    public void setStatus(PostStatus status) { this.status = status; }
-
-    public String getCreatedAt() { return createdAt; }
-    public void setCreatedAt() { this.createdAt = Instant.now().toString(); }
-
-    public String getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt.toString(); }
-
-    public void setContentBlock(List<PostBlock> contentBlock){
-        this.contentBlock=contentBlock;
+    public String getId() {
+        return id;
     }
 
-    public List<PostBlock> getContentBlock(){
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public PostStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PostStatus status) {
+        this.status = status;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt() {
+        this.createdAt = Instant.now().toString();
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt.toString();
+    }
+
+    public void setContentBlock(List<PostBlock> contentBlock) {
+        this.contentBlock = contentBlock;
+    }
+
+    public List<PostBlock> getContentBlock() {
         return contentBlock;
     }
 
     public void setNormalizedTitle(String normalizedTitle) {
         this.normalizedTitle = normalizedTitle;
     }
-    public void setReportStatus(ReportStatus reportStatus){
-        this.reportStatus=reportStatus;
+
+    public void setReportStatus(ReportStatus reportStatus) {
+        this.reportStatus = reportStatus;
     }
 
     public ReportStatus getReportStatus() {
         return reportStatus;
     }
 }
-

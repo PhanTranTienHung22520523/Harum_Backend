@@ -44,40 +44,85 @@ public class PostService {
 
     // 3. Read - Lấy bài post theo ID
 
-   // public Optional<Posts> getPostById(String id) {
-    //    return postRepository.findById(id);
-    //}
-   public Optional<PostDetailsDTO> getPostDetailsById(String postId) {
-       Optional<Posts> postOpt = postRepository.findById(postId);
+    // public Optional<Posts> getPostById(String id) {
+    // return postRepository.findById(id);
+    // }
+    public Optional<PostDetailsDTO> getPostDetailsById(String postId) {
+        Optional<Posts> postOpt = postRepository.findById(postId);
 
-       if (postOpt.isEmpty()) return Optional.empty();
+        if (postOpt.isEmpty())
+            return Optional.empty();
 
-       Posts post = postOpt.get();
+        Posts post = postOpt.get();
 
-       Optional<Users> userOpt = userRepository.findById(post.getUserId());
-       Optional<Topics> topicOpt = topicRepository.findById(post.getTopicId());
+        Optional<Users> userOpt = userRepository.findById(post.getUserId());
+        Optional<Topics> topicOpt = topicRepository.findById(post.getTopicId());
 
-       PostDetailsDTO dto = new PostDetailsDTO();
-       dto.setId(post.getId());
-       dto.setTitle(post.getTitle());
-       dto.setContent(post.getContent());
-       dto.setImageUrl(post.getImageUrl());
-       dto.setTopicId(post.getTopicId());
-       dto.setTopicName(topicOpt.map(Topics::getName).orElse(null));
-       dto.setUserId(post.getUserId());
-       dto.setUsername(userOpt.map(Users::getUsername).orElse(null));
-       dto.setAvatarUrl(userOpt.map(Users::getAvatarUrl).orElse(null));
-       dto.setContentBlock(post.getContentBlock());
-       dto.setCountLike(post.getCountLike());
-       dto.setCountDislike(post.getCountDislike());
-       dto.setCountView(post.getCountView());
-       dto.setCreatedAt(post.getCreatedAt());
-       dto.setUpdatedAt(post.getUpdatedAt());
-       dto.setStatus(post.getStatus());
-       dto.setReportStatus(post.getReportStatus());
+        PostDetailsDTO dto = new PostDetailsDTO();
+        dto.setId(post.getId());
+        dto.setTitle(post.getTitle());
+        dto.setContent(post.getContent());
+        dto.setImageUrl(post.getImageUrl());
+        dto.setTopicId(post.getTopicId());
+        dto.setTopicName(topicOpt.map(Topics::getName).orElse(null));
+        dto.setUserId(post.getUserId());
+        dto.setUsername(userOpt.map(Users::getUsername).orElse(null));
+        dto.setAvatarUrl(userOpt.map(Users::getAvatarUrl).orElse(null));
+        dto.setContentBlock(post.getContentBlock());
+        dto.setCountLike(post.getCountLike());
+        dto.setCountDislike(post.getCountDislike());
+        dto.setCountView(post.getCountView());
+        dto.setCreatedAt(post.getCreatedAt());
+        dto.setUpdatedAt(post.getUpdatedAt());
+        dto.setStatus(post.getStatus());
+        dto.setReportStatus(post.getReportStatus());
 
-       return Optional.of(dto);
-   }
+        return Optional.of(dto);
+    }
+
+    // mới
+    public PostResponseDTO togglePostStatus(String postId) {
+        Posts post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+
+        PostStatus currentStatus = post.getStatus();
+
+        if (currentStatus == PostStatus.PENDING) {
+            post.setStatus(PostStatus.REJECTED);
+        } else {
+            post.setStatus(PostStatus.PENDING);
+        }
+
+        Posts updatedPost = postRepository.save(post);
+
+        return convertToResponseDTO(updatedPost);
+    }
+
+    private PostResponseDTO convertToResponseDTO(Posts post) {
+        // Lấy thông tin phụ từ các repository khác
+        Users user = userRepository.findById(post.getUserId()).orElse(null);
+        Topics topic = topicRepository.findById(post.getTopicId()).orElse(null);
+
+        // Tạo và trả về DTO
+        return new PostResponseDTO(
+                post.getId(),
+                post.getTitle(),
+                user != null ? user.getAvatarUrl() : null,
+                post.getContent(),
+                post.getImageUrl(),
+                post.getStatus().name(), // Chuyển Enum thành String bằng phương thức .name()
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                post.getTopicId(),
+                topic != null ? topic.getName() : null,
+                post.getUserId(),
+                user != null ? user.getUsername() : null,
+                post.getCountLike(),
+                post.getCountDislike(),
+                post.getCountView(),
+                post.getContentBlock());
+    }
+
     // 4. Update - Cập nhật bài post theo ID
     public Posts updatePost(String id, Posts updatedPost) {
         if (postRepository.existsById(id)) {
@@ -102,7 +147,8 @@ public class PostService {
         Page<Posts> postsPage = postRepository.findByTopicId(topicId, pageable);
         return convertToPostResponseDTO(postsPage);
     }
-    // 6.1 Read - Lấy danh sách bài post noi bat  theo topicId với phân trang
+
+    // 6.1 Read - Lấy danh sách bài post noi bat theo topicId với phân trang
     public Page<PostResponseDTO> getTopPostsByTopic(String topicId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("countView")));
         Page<Posts> postsPage = postRepository.findByTopicId(topicId, pageable);
@@ -129,7 +175,6 @@ public class PostService {
         Page<Posts> postsPage = postRepository.findAll(pageable);
         return convertToPostResponseDTO(postsPage);
     }
-
 
     // 10.1 Lay danh sach theo list id khong phan trang
     public List<PostResponseDTO> getPostsByIds(List<String> postIds) {
@@ -177,8 +222,7 @@ public class PostService {
         return dtos;
     }
 
-
-    //10.Lấy danh sách bài v theo danh sach id cho trươc  phan trang
+    // 10.Lấy danh sách bài v theo danh sach id cho trươc phan trang
     public Page<PostResponseDTO> getPostsByIdsWithPaging(List<String> postIds, Pageable pageable) {
         // 1. Kiểm tra nếu danh sách ID đầu vào rỗng thì trả về trang rỗng luôn.
         if (postIds == null || postIds.isEmpty()) {
@@ -226,8 +270,6 @@ public class PostService {
             return dto;
         }).collect(Collectors.toList());
 
-
-
         // 5. Tạo và trả về một đối tượng Page.
         return new PageImpl<>(dtos, pageable, postIds.size());
     }
@@ -264,11 +306,6 @@ public class PostService {
             return dto;
         });
     }
-
-
-
-
-
 
     public List<Posts> getPostsByStatus(ReportStatus status) {
         return postRepository.findByStatus(status);

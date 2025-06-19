@@ -37,13 +37,14 @@ public class UserService {
     private CommentRepo commentRepo;
 
     // Get all users
-//    public List<Users> getAllUsers() {
-//        return userRepository.findAll();
-//    }
+    // public List<Users> getAllUsers() {
+    // return userRepository.findAll();
+    // }
     public Page<Users> getAllUsers(int page, int size) {
-        Pageable pageable = PageRequest.of(page-1, size);
+        Pageable pageable = PageRequest.of(page - 1, size);
         return userRepository.findAll(pageable);
     }
+
     public Page<Users> getDisabledUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         return userRepository.findDisabledUsers(pageable);
@@ -59,23 +60,26 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    //get user by email
-    public Optional<Users> getUserByEmail(String email){
+    // get user by email
+    public Optional<Users> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
     // Create new user
     public Users createUser(Users user) {
-        if (user.getAvatarUrl() == null) user.setAvatarUrl("default_avatar.png");
-        if (user.getCoverUrl() == null) user.setCoverUrl("default_cover.jpg");
-        if (user.getBio() == null) user.setBio("Hello! I'm new here.");
+        if (user.getAvatarUrl() == null)
+            user.setAvatarUrl("default_avatar.png");
+        if (user.getCoverUrl() == null)
+            user.setCoverUrl("default_cover.jpg");
+        if (user.getBio() == null)
+            user.setBio("Hello! I'm new here.");
         if (user.getRole() == null) {
             Roles defaultRole = (new Roles(RoleTypes.USER)); // Nếu chưa có, tạo mới
             user.setRole(defaultRole);
         }
 
-
-        if (user.getCreatedAt() == null) user.setCreatedAt(Instant.now().toString());
+        if (user.getCreatedAt() == null)
+            user.setCreatedAt(Instant.now().toString());
 
         return userRepository.save(user);
     }
@@ -102,8 +106,8 @@ public class UserService {
         return false;
     }
 
-    //Get user profile
-    public Optional<UserProfileDTO> getUserProfile(String userId){
+    // Get user profile
+    public Optional<UserProfileDTO> getUserProfile(String userId) {
         Optional<Users> user = userRepository.findById(userId);
         if (user.isPresent()) {
             long followings = followRepository.countByFollowerId(userId);
@@ -111,13 +115,12 @@ public class UserService {
             Users u = user.get();
             return Optional.of(new UserProfileDTO(
                     u.getId(), u.getUsername(), u.getEmail(), u.getAvatarUrl(),
-                    u.getCoverUrl(), u.getBio(), u.getStatus(), followers, followings
-            ));
+                    u.getCoverUrl(), u.getBio(), u.getStatus(), followers, followings));
         }
         return Optional.empty();
     }
 
-    //Update user profile
+    // Update user profile
     public Optional<Users> updateUserProfile(String id, Users updatedUser) {
         return userRepository.findById(id).map(user -> {
             user.setUsername(updatedUser.getUsername());
@@ -129,13 +132,25 @@ public class UserService {
             return userRepository.save(user);
         });
     }
-    //Update Disable user status
+
+    // Update Disable user status
     public Optional<Users> updateUserStatus(String id, Users updatedUser) {
 
         return userRepository.findById(id).map(user -> {
             user.setStatus(updatedUser.getStatus());
             return userRepository.save(user);
         });
+    }
+
+    // mới
+    public Optional<Users> patchUserStatus(String id, String newStatus) {
+        Optional<Users> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            Users userToUpdate = userOptional.get();
+            userToUpdate.setStatus(newStatus); // Chỉ cập nhật trường status
+            return Optional.of(userRepository.save(userToUpdate)); // Lưu lại
+        }
+        return Optional.empty();
     }
 
     public Optional<Users> getUserByCommentId(String commentId) {
