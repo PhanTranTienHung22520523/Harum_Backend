@@ -173,6 +173,36 @@ public class UserController {
         }
     }
 
+    // hàm mới:
+    @PutMapping("/put-status/{id}")
+    public ResponseEntity<?> updateUserStatus(
+            @PathVariable String id,
+            @RequestBody UserStatusPatchRequest request) { // <-- Dùng DTO mới
+        try {
+            // Tìm user để lấy email
+            Optional<Users> userOptional = userService.getUserById(id); // Giả sử có hàm này
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Users user = userOptional.get();
+
+            // Gửi email
+            String subject = "Thông báo thay đổi trạng thái tài khoản";
+            emailService.sendEmail(user.getEmail(), subject, request.getEmailContent());
+
+            // Cập nhật status
+            // Truyền newStatus vào service thay vì cả object
+            Optional<Users> updated = userService.patchUserStatus(id, request.getStatus());
+
+            return ResponseEntity.ok(updated.get());
+
+        } catch (MessagingException e) {
+            return ResponseEntity.status(500).body("Lỗi khi gửi email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
+        }
+    }
+
 
     @PostMapping("/favorite-topics/{userId}")
     public ResponseEntity<?> updateFavoriteTopics(
@@ -192,7 +222,11 @@ public class UserController {
     public ResponseEntity<List<Map<String, Object>>> getUsersSortedByFollowers() {
         return ResponseEntity.ok(userService.getUsersSortedByFollowers());
     }
-
+    @GetMapping("/count")
+    public ResponseEntity<Long> countAllUsers() {
+        long count = userService.countAllUsers();
+        return ResponseEntity.ok(count);
+    }
 
 
 

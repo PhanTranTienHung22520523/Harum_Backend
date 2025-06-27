@@ -6,7 +6,6 @@ import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
 import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Roles;
-import com.Harum.Harum.Models.Topics;
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Repository.*;
 import com.Harum.Harum.Security.JwtUtil;
@@ -209,7 +208,18 @@ public class UserService {
                 }).sorted((a, b) -> Long.compare((long) b.get("followerCount"), (long) a.get("followerCount")))
                 .collect(Collectors.toList());
     }
+    public Optional<Users> patchUserStatus(String id, String newStatus) {
+        Optional<Users> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            Users userToUpdate = userOptional.get();
+            userToUpdate.setStatus(newStatus); // Chỉ cập nhật trường status
+            return Optional.of(userRepository.save(userToUpdate)); // Lưu lại
+        }
+        return Optional.empty();
+    }
 
-
+    public long countAllUsers() {
+        return userRepository.count();
+    }
 
 }

@@ -18,7 +18,7 @@ public class PostReportDetailsDTO {
     private String postId;
     private String reason;
     private String status;
-    private String createdAt = Instant.now().toString();
+    private String createdAt;
 
     // Constructor không tham số
     public PostReportDetailsDTO() {
@@ -26,7 +26,7 @@ public class PostReportDetailsDTO {
 
     // Constructor đầy đủ
     public PostReportDetailsDTO(String reportId, String reporterId, String reporterName, String reporterAvatar,
-                                String postId, String reason, String status, String createdAt) {
+            String postId, String reason, String status, String createdAt) {
         this.reportId = reportId;
         this.reporterId = reporterId;
         this.reporterName = reporterName;
@@ -34,7 +34,7 @@ public class PostReportDetailsDTO {
         this.postId = postId;
         this.reason = reason;
         this.status = status;
-        this.createdAt = Instant.now().toString();
+        this.createdAt = createdAt;
     }
 
     // Getter & Setter
@@ -99,6 +99,6 @@ public class PostReportDetailsDTO {
     }
 
     public void setCreatedAt(String createdAt) {
-        this.createdAt = Instant.now().toString();
+        this.createdAt = createdAt;
     }
 }

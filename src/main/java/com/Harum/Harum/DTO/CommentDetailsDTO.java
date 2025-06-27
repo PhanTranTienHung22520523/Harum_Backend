@@ -1,9 +1,8 @@
 package com.Harum.Harum.DTO;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
 
 public class CommentDetailsDTO {
     private String id;
@@ -12,19 +11,20 @@ public class CommentDetailsDTO {
     private String content;
     private String createdAt;
     private String parentId;
-
+    private String status;
     // Bổ sung thông tin người dùng
     private String username;
     private String avatarUrl;
 
-
-    public CommentDetailsDTO(String id, String postId, String userId, String content, String createdAt, String parentId, String username, String avatarUrl) {
+    public CommentDetailsDTO(String id, String postId, String userId, String content, String createdAt, String parentId,
+                             String status, String username, String avatarUrl) {
         this.id = id;
         this.postId = postId;
         this.userId = userId;
         this.content = content;
         this.createdAt = createdAt;
         this.parentId = parentId;
+        this.status = status;
         this.username = username;
         this.avatarUrl = avatarUrl;
     }
@@ -76,6 +76,14 @@ public class CommentDetailsDTO {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getUsername() {
