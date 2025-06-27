@@ -31,6 +31,17 @@ public class PostService {
     @Autowired
     private UserRepo userRepository;
 
+    // Đếm tổng số bài viết
+    public long countAllPosts() {
+        return postRepository.count();
+    }
+
+    // Đếm số bài viết theo topic ID
+    public long countPostsByTopic(String topicId) {
+        return postRepository.countByTopicId(topicId);
+    }
+
+
     // 1. Create - Tạo mới bài post
     public Posts createPost(Posts post) {
         return postRepository.save(post);

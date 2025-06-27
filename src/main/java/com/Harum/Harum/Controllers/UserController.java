@@ -1,13 +1,10 @@
 package com.Harum.Harum.Controllers;
 
-import com.Harum.Harum.DTO.EmailRequestDTO;
-import com.Harum.Harum.DTO.UserStatusUpdateRequest;
+import com.Harum.Harum.DTO.*;
 import com.Harum.Harum.Models.Users;
 import com.Harum.Harum.Services.CloudinaryService;
 import com.Harum.Harum.Services.EmailService;
 import com.Harum.Harum.Services.UserService;
-import com.Harum.Harum.DTO.UserProfileDTO;
-import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -174,5 +172,28 @@ public class UserController {
             return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
         }
     }
+
+
+    @PostMapping("/favorite-topics/{userId}")
+    public ResponseEntity<?> updateFavoriteTopics(
+            @PathVariable String userId,
+            @RequestBody List<FavoriteTopicDTO> favoriteTopics) {
+        return userService.updateFavoriteTopics(userId, favoriteTopics)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/sorted-by-posts")
+    public ResponseEntity<List<Map<String, Object>>> getUsersSortedByPostCount() {
+        return ResponseEntity.ok(userService.getUsersSortedByPostCount());
+    }
+
+    @GetMapping("/sorted-by-followers")
+    public ResponseEntity<List<Map<String, Object>>> getUsersSortedByFollowers() {
+        return ResponseEntity.ok(userService.getUsersSortedByFollowers());
+    }
+
+
+
 
 }

@@ -51,6 +51,30 @@ public class PostController {
 
     @Autowired
     private TopicRepo topicRepo;
+    // Đếm tổng số bài viết
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Object>> countAllPosts() {
+        long count = postService.countAllPosts();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalPosts", count);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    // Đếm bài viết theo topicId
+    @GetMapping("/count/topic/{topicId}")
+    public ResponseEntity<Map<String, Object>> countPostsByTopic(@PathVariable String topicId) {
+        long count = postService.countPostsByTopic(topicId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("topicId", topicId);
+        response.put("postCount", count);
+
+        return ResponseEntity.ok(response);
+    }
+
 
     // 1. Create - Tạo mới bài post (chưa xử lý ảnh)
     @PostMapping

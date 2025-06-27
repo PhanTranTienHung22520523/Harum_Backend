@@ -1,6 +1,7 @@
     package com.Harum.Harum.Models;
 
 
+    import com.Harum.Harum.DTO.FavoriteTopicDTO;
     import com.Harum.Harum.Enums.RoleTypes;
     import jakarta.validation.constraints.Email;
     import jakarta.validation.constraints.NotBlank;
@@ -13,6 +14,7 @@
     import org.springframework.data.mongodb.core.mapping.Document;
     import org.springframework.data.annotation.Id;
     import java.time.Instant;
+    import java.util.List;
 
     @Document (collection = "users")
     @Data
@@ -46,8 +48,15 @@
         private String createdAt;
         private String resetToken;
         private long otpExpiryTime; //
+        private List<FavoriteTopicDTO> favoriteTopics;
 
+        public List<FavoriteTopicDTO> getFavoriteTopics() {
+            return favoriteTopics;
+        }
 
+        public void setFavoriteTopics(List<FavoriteTopicDTO> favoriteTopics) {
+            this.favoriteTopics = favoriteTopics;
+        }
 
         public Users(String username, String email, String passwordHash, String avatarUrl, String coverUrl, String bio, Roles role) {
             this.username = username;

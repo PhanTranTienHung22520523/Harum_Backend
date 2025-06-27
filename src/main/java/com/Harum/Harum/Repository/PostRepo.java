@@ -19,6 +19,9 @@ public interface PostRepo extends MongoRepository<Posts, String> {
     Page<Posts> findByTopicId(String topicId, Pageable pageable);  // Lấy bài post theo topicId với phân trang
     Page<Posts> findByUserId(String userId, Pageable pageable);    // Lấy bài post theo userId với phân trang
     List<Posts> findByStatus(ReportStatus status);
+    long countByTopicId(String topicId);
+    long countByUserId(String userId);
+
 
     @Query("{ $text: { $search: ?0 } }")
     Page<Posts> searchPosts(String keyword, Pageable pageable);

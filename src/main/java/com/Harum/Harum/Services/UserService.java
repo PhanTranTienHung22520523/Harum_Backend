@@ -1,14 +1,14 @@
 package com.Harum.Harum.Services;
 
+import com.Harum.Harum.DTO.FavoriteTopicDTO;
 import com.Harum.Harum.DTO.UserProfileDTO;
 import com.Harum.Harum.DTO.ChangePasswordRequestDTO;
 import com.Harum.Harum.Enums.RoleTypes;
 import com.Harum.Harum.Models.Comments;
 import com.Harum.Harum.Models.Roles;
+import com.Harum.Harum.Models.Topics;
 import com.Harum.Harum.Models.Users;
-import com.Harum.Harum.Repository.CommentRepo;
-import com.Harum.Harum.Repository.FollowRepo;
-import com.Harum.Harum.Repository.UserRepo;
+import com.Harum.Harum.Repository.*;
 import com.Harum.Harum.Security.JwtUtil;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -35,6 +38,13 @@ public class UserService {
 
     @Autowired
     private CommentRepo commentRepo;
+
+    @Autowired
+    private TopicRepo topicRepo;
+
+    @Autowired
+    private PostRepo postRepo;
+
 
     // Get all users
 //    public List<Users> getAllUsers() {
@@ -109,10 +119,15 @@ public class UserService {
             long followings = followRepository.countByFollowerId(userId);
             long followers = followRepository.countByFollowedId(userId);
             Users u = user.get();
-            return Optional.of(new UserProfileDTO(
+            long postCount = postRepo.countByUserId(userId);
+            UserProfileDTO dto = new UserProfileDTO(
                     u.getId(), u.getUsername(), u.getEmail(), u.getAvatarUrl(),
-                    u.getCoverUrl(), u.getBio(), u.getStatus(), followers, followings
-            ));
+                    u.getCoverUrl(), u.getBio(), u.getStatus(), followers, followings,
+                    u.getFavoriteTopics()
+            );
+            dto.setPostCount(postCount);
+            return Optional.of(dto);
+
         }
         return Optional.empty();
     }
@@ -149,4 +164,52 @@ public class UserService {
                     return userRepository.findById(userId);
                 });
     }
+
+
+    public Optional<Users> updateFavoriteTopics(String userId, List<FavoriteTopicDTO> favoriteTopics) {
+        Optional<Users> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            user.setFavoriteTopics(favoriteTopics);
+            return Optional.of(userRepository.save(user));
+        }
+        return Optional.empty();
+    }
+
+    public List<Map<String, Object>> getUsersSortedByPostCount() {
+        List<Users> users = userRepository.findAll();
+
+        return users.stream().map(user -> {
+                    long postCount = postRepo.countByUserId(user.getId());
+
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("userId", user.getId());
+                    map.put("username", user.getUsername());
+                    map.put("avatarUrl", user.getAvatarUrl());
+                    map.put("postCount", postCount);
+
+                    return map;
+                }).sorted((a, b) -> Long.compare((long) b.get("postCount"), (long) a.get("postCount")))
+                .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getUsersSortedByFollowers() {
+        List<Users> users = userRepository.findAll();
+
+        return users.stream().map(user -> {
+                    long followerCount = followRepository.countByFollowedId(user.getId());
+
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("userId", user.getId());
+                    map.put("username", user.getUsername());
+                    map.put("avatarUrl", user.getAvatarUrl());
+                    map.put("followerCount", followerCount);
+
+                    return map;
+                }).sorted((a, b) -> Long.compare((long) b.get("followerCount"), (long) a.get("followerCount")))
+                .collect(Collectors.toList());
+    }
+
+
+
 }
