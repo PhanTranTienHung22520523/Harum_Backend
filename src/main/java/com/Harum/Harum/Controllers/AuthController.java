@@ -118,12 +118,13 @@ public class AuthController {
 
     // xác thực OTP để tạo tài khoản
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOTP(@RequestBody VerifyOtpRequestDTO request) {
+    public ResponseEntity<?> verifyOTP(@RequestBody VerifyOtpRequestDTO request) {
         String email = request.getEmail();
         String otp = request.getOtp();
         Users user = request.getUser();
+
         if (!otpService.validateOtp(email, otp)) {
-            return ResponseEntity.badRequest().body("Invalid or expired OTP");
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid or expired OTP"));
         }
 
         // Mã hóa mật khẩu trước khi lưu vào database
@@ -136,13 +137,24 @@ public class AuthController {
         user.setRole(defaultRole);
         user.setCreatedAt(Instant.now().toString());
 
-        // Lưu user vào database
-        userRepository.save(user);
+        //Lưu user vào database và lấy lại đối tượng đã lưu (có ID)
+        Users savedUser = userRepository.save(user);
 
         // Xóa OTP sau khi xác thực thành công
         otpService.removeOtp(email);
 
-        return ResponseEntity.status(StatusCodes.CREATED.getCode()).body("Account created successfully!");
+
+        String roleName = savedUser.getRole().getRoleName().name();
+        String token = jwtUtil.generateToken(savedUser.getEmail(), roleName);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("role", roleName);
+        response.put("id", savedUser.getId());
+        response.put("email", savedUser.getEmail());
+        response.put("username", savedUser.getUsername());
+
+        return ResponseEntity.status(StatusCodes.CREATED.getCode()).body(response);
     }
 
 
