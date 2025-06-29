@@ -32,4 +32,12 @@ public class FollowController {
             @PathVariable int size) {
         return followService.getFollowedUsers(followerId, page, size);
     }
+
+    @GetMapping("/followers/{userId}/{page}/{size}")
+    public List<Users> getFollowers(
+            @PathVariable String userId,
+            @PathVariable int page,
+            @PathVariable int size) {
+        return followService.getFollowers(userId, page, size);
+    }
 }

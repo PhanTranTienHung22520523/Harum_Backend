@@ -54,4 +54,16 @@ public class FollowService {
 
         return userRepository.findAllById(followedUserIds);
     }
+
+    public List<Users> getFollowers(String userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<Follows> follows = followRepository.findByFollowedId(userId, pageable);
+
+        List<String> followerUserIds = follows.stream()
+                .map(Follows::getFollowerId)
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(followerUserIds);
+    }
 }
